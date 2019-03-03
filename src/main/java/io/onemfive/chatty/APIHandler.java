@@ -5,6 +5,7 @@ import io.onemfive.clearnet.server.Session;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
+import io.onemfive.sensors.SensorRequest;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -33,8 +34,11 @@ public class APIHandler extends EnvelopeJSONDataHandler {
         switch(command) {
             case "send": {
                 LOG.info("Send request..");
+                String msg = params.get("m");
+                e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
+                SensorRequest r = new SensorRequest();
 
-//                sensor.send(e);
+                sensor.send(e);
                 break;
             }
             case "stats": {
@@ -60,8 +64,7 @@ public class APIHandler extends EnvelopeJSONDataHandler {
         m.put("command",command);
         switch(command) {
             case "send": {
-                LOG.info("Send message response..");
-
+                LOG.info("Send message acknowledged.");
                 break;
             }
             case "stats": {
