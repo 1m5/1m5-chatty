@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.onemfive</groupId>
+	<artifactId>chatty</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<onemfive.version>0.6.0</onemfive.version>
+	</properties>
+
+	<name>1m5-chatty</name>
+	<url>https://1m5.io</url>
+	<description>Integration with Purism Chatty</description>
+	<inceptionYear>2019</inceptionYear>
+	<organization>
+		<name>1M5</name>
+		<url>https://1m5.io</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GPLv3</name>
+			<url>https://choosealicense.com/licenses/gpl-3.0/</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>objectorange</name>
+			<email>objectorange@1m5.io</email>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git@github.com/1m5/1m5-chatty</connection>
+		<developerConnection>scm:git@github.com/1m5/1m5-chatty</developerConnection>
+		<url>git@github.com/1m5/1m5-chatty</url>
+	</scm>
+
+	<profiles>
+		<profile>
+			<id>devnet</id>
+			<properties>
+				
+			</properties>
+		</profile>
+		<profile>
+			<id>demonet</id>
+			<properties>
+			
+			</properties>
+		</profile>
+		<profile>
+			<id>integrationnet</id>
+			<properties>
+			
+			</properties>
+		</profile>
+		<profile>
+			<id>testnet</id>
+			<properties>
+			
+			</properties>
+		</profile>
+		<profile>
+			<id>mainnet</id>
+			<properties>
+			
+			</properties>
+		</profile>
+	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>core</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>did</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>sensors</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>sensormanager-neo4j</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>i2p</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>clearnet-server</artifactId>
+			<version>${onemfive.version}</version>
+		</dependency>
+		<!-- Test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<finalName>${project.name}-${project.version}</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.xml</include>
+					<include>**/*.yml</include>
+					<include>**/*.properties</include>
+					<include>**/*.config</include>
+				</includes>
+			</resource>
+		</resources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.10</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.5.5</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.2</version>
+				</plugin>
+				<plugin>
+					<groupId>sh.tak.appbundler</groupId>
+					<artifactId>appbundle-maven-plugin</artifactId>
+					<version>1.2.0</version>
+				</plugin>
+				<plugin>
+					<groupId>net.sf.debian-maven</groupId>
+					<artifactId>debian-maven-plugin</artifactId>
+					<version>1.0.6</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>io.onemfive.chatty.Daemon</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
