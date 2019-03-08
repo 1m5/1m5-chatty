@@ -18,7 +18,16 @@ https://github.com/1m5/1m5-chatty/releases
 
 ## Builds
 1. First build the 1M5 core by cloning the 1m5-core repo and all dependent repos (look in pom.xml).
-2. Build all repos in order of dependency starting with 1m5-data and ending with 1m5-chatty.
+2. Build all repos in order of dependency starting with 1m5-data and ending with 1m5-chatty:
+    1. 1m5-data
+    2. 1m5-core
+    3. 1m5-did
+    4. 1m5-sensors
+    5. 1m5-neo4j (forgot this one)
+    6. 1m5-sensormanager-neo4j
+    7. 1m5-i2p
+    8. 1m5-clearnet-server
+    9. 1m5-chatty
 3. NOTE: Ensure you set the correct maven profiles for 1m5-chatty.
 
 ### Maven Profiles
