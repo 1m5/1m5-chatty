@@ -23,7 +23,7 @@ https://github.com/1m5/1m5-chatty/releases
     2. 1m5-core
     3. 1m5-did
     4. 1m5-sensors
-    5. 1m5-neo4j (forgot this one)
+    5. 1m5-neo4j
     6. 1m5-sensormanager-neo4j
     7. 1m5-i2p
     8. 1m5-clearnet-server
