@@ -2,9 +2,15 @@ package io.onemfive.proxy;
 
 import io.onemfive.clearnet.server.EnvelopeJSONDataHandler;
 import io.onemfive.clearnet.server.Session;
+import io.onemfive.core.keyring.AuthNRequest;
+import io.onemfive.core.keyring.GenerateKeyRingCollectionsRequest;
+import io.onemfive.core.keyring.KeyRingService;
+import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
+import io.onemfive.did.AuthenticateDIDRequest;
+import io.onemfive.did.DIDService;
 import io.onemfive.sensors.SensorRequest;
 
 import java.util.*;
@@ -32,6 +38,45 @@ public class APIHandler extends EnvelopeJSONDataHandler {
         Session session = activeSessions.get(sessionId);
         Map<String,String> params = (Map<String,String>)DLC.getData(Map.class, e);
         switch(command) {
+            case "identify": {
+                LOG.info("Identify request..");
+                String username = params.get("u");
+                String passphrase = params.get("p");
+                String passphrase2 = params.get("p2");
+                DID did = new DID();
+                did.setUsername(username);
+                did.setPassphrase(passphrase);
+                if(passphrase2 != null) {
+                    // 2. Persist new DID
+                    did.setAuthenticated(true);
+                    DLC.addData(DID.class, did,e);
+                    DLC.addRoute(DIDService.class, DIDService.OPERATION_SAVE,e);
+
+                    // 1. Create and save KeyRingCollection
+                    GenerateKeyRingCollectionsRequest gkr = new GenerateKeyRingCollectionsRequest();
+                    gkr.keyRingUsername = username;
+                    gkr.keyRingPassphrase = passphrase;
+                    DLC.addData(GenerateKeyRingCollectionsRequest.class, gkr,e);
+                    DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_GENERATE_KEY_RINGS_COLLECTIONS,e);
+                } else {
+                    // 2. Load DID
+                    AuthenticateDIDRequest r = new AuthenticateDIDRequest();
+                    r.did = did;
+
+                    DLC.addData(AuthenticateDIDRequest.class,r,e);
+                    DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE,e);
+
+                    // 1. Load Public Key addresses for short and full addresses
+                    AuthNRequest ar = new AuthNRequest();
+                    ar.keyRingUsername = username;
+                    ar.keyRingPassphrase = passphrase;
+                    ar.alias = username;
+                    ar.aliasPassphrase = passphrase;
+                    DLC.addData(AuthNRequest.class,ar,e);
+                    DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_AUTHN,e);
+                }
+                break;
+            }
             case "send": {
                 LOG.info("Send request..");
                 String msg = params.get("m");
