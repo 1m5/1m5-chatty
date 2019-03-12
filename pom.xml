@@ -19,10 +19,6 @@
 	<url>https://1m5.io</url>
 	<description>Integration as Proxy</description>
 	<inceptionYear>2019</inceptionYear>
-	<organization>
-		<name>1M5</name>
-		<url>https://1m5.io</url>
-	</organization>
 	<licenses>
 		<license>
 			<name>Unlicense</name>
