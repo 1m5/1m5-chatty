@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>io.onemfive</groupId>
-	<artifactId>chatty</artifactId>
+	<artifactId>proxy</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
@@ -15,9 +15,9 @@
 		<onemfive.version>0.6.0</onemfive.version>
 	</properties>
 
-	<name>1m5-chatty</name>
+	<name>1m5-proxy</name>
 	<url>https://1m5.io</url>
-	<description>Integration with Purism Chatty</description>
+	<description>Integration as Proxy</description>
 	<inceptionYear>2019</inceptionYear>
 	<organization>
 		<name>1M5</name>
@@ -25,8 +25,8 @@
 	</organization>
 	<licenses>
 		<license>
-			<name>GPLv3</name>
-			<url>https://choosealicense.com/licenses/gpl-3.0/</url>
+			<name>Unlicense</name>
+			<url>https://unlicense.org/</url>
 		</license>
 	</licenses>
 	<developers>
@@ -170,25 +170,41 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
+			<!--<plugin>-->
+				<!--<artifactId>maven-assembly-plugin</artifactId>-->
+				<!--<executions>-->
+					<!--<execution>-->
+						<!--<phase>package</phase>-->
+						<!--<goals>-->
+							<!--<goal>single</goal>-->
+						<!--</goals>-->
+					<!--</execution>-->
+				<!--</executions>-->
+				<!--<configuration>-->
+					<!--<archive>-->
+						<!--<manifest>-->
+							<!--<mainClass>io.onemfive.chatty.Daemon</mainClass>-->
+						<!--</manifest>-->
+					<!--</archive>-->
+					<!--<descriptorRefs>-->
+						<!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
+					<!--</descriptorRefs>-->
+				<!--</configuration>-->
+			<!--</plugin>-->
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
+				<groupId>net.sf.debian-maven</groupId>
+				<artifactId>debian-maven-plugin</artifactId>
+				<version>1.0.6</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>package</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>io.onemfive.chatty.Daemon</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
+
 				</configuration>
 			</plugin>
 		</plugins>
