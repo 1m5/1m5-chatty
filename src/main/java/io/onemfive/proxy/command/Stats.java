@@ -1,4 +1,4 @@
-package io.onemfive.chatty.command;
+package io.onemfive.proxy.command;
 
 /**
  * TODO: Add Description

@@ -1,4 +1,4 @@
-package io.onemfive.chatty;
+package io.onemfive.proxy;
 
 import io.onemfive.clearnet.server.EnvelopeJSONDataHandler;
 import io.onemfive.clearnet.server.Session;

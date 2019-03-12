@@ -1,5 +1,5 @@
-# 1M5 Chatty
-Starts the 1M5 daemon for Purism Chatty.
+# 1M5 Proxy
+Starts the 1M5 daemon as a proxy.
 - Either download 1m5-chatty.deb from releases or build it yourself (below).
 - Ensure OpenJDK 8 or above is installed.
     - Linux: https://openjdk.java.net/install/
@@ -7,14 +7,14 @@ Starts the 1M5 daemon for Purism Chatty.
     - Windows: https://www.youtube.com/watch?v=74pE3kLerAU&vl=en
 
 ## Releases
-When downloading releases, please ensure you're downloading the correct 1m5-chatty.deb from the network you wish to connect to:
+When downloading releases, please ensure you're downloading the correct 1m5-proxy.deb from the network you wish to connect to:
 - **devnet**: development
-- **demonet**: demos (should only be used by Purism)
+- **demonet**: demos 
 - **integrationnet**: automated quality assurance integrated testing (CI use only)
 - **testnet**: testing Purism apps integration prior to connecting to mainnet
 - **mainnet**: live production network
 
-https://github.com/1m5/1m5-chatty/releases
+https://github.com/1m5/1m5-proxy/releases
 
 ## Builds
 1. First build the 1M5 core by cloning the 1m5-core repo and all dependent repos (look in pom.xml).
@@ -34,6 +34,7 @@ https://github.com/1m5/1m5-chatty/releases
 Build project with your appropriate network set in maven profile:
 - **devnet**: development
 - **demonet**: demos (should only be used by Purism)
+- **integrationnet**: CI
 - **testnet**: testing Purism apps integration prior to connecting to mainnet
 - **mainnet**: live production network
 

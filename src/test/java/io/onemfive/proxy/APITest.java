@@ -1,4 +1,4 @@
-package io.onemfive.chatty;
+package io.onemfive.proxy;
 
 import org.junit.After;
 import org.junit.Before;

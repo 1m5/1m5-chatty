@@ -1,4 +1,4 @@
-package io.onemfive.chatty.packet;
+package io.onemfive.proxy.packet;
 
 import io.onemfive.core.ServiceRequest;
 import io.onemfive.core.util.HashCash;
@@ -13,9 +13,9 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public abstract class ChattyPacket extends ServiceRequest {
+public abstract class ProxyPacket extends ServiceRequest {
 
-    private static Logger LOG = Logger.getLogger(ChattyPacket.class.getName());
+    private static Logger LOG = Logger.getLogger(ProxyPacket.class.getName());
 
     private Long id;
     protected Map<String,Object> fromPeer;
@@ -27,7 +27,7 @@ public abstract class ChattyPacket extends ServiceRequest {
 
     private HashCash hashCash;
 
-    public ChattyPacket() {
+    public ProxyPacket() {
         id = new Random(System.currentTimeMillis()).nextLong();
         try {
             hashCash = HashCash.mintCash(new Random().nextLong()+"",1);
