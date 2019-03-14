@@ -48,6 +48,11 @@ public abstract class ProxyPacket extends ServiceRequest {
         }
     }
 
+    public boolean verifyHashCash(HashCash hashCash) {
+        // TODO: needs implemented
+        return true;
+    }
+
     public Long getId() {
         return id;
     }
