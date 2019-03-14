@@ -27,14 +27,24 @@ public abstract class ProxyPacket extends ServiceRequest {
 
     private HashCash hashCash;
 
+    public ProxyPacket() {
+        this(false);
+    }
+
     public ProxyPacket(boolean hashCashIt) {
         id = new Random(System.currentTimeMillis()).nextLong();
         if(hashCashIt) {
-            try {
-                hashCash = HashCash.mintCash(id + "", 1);
-            } catch (NoSuchAlgorithmException e) {
-                LOG.warning(e.getLocalizedMessage());
-            }
+            mintHashCash();
+        }
+    }
+
+    public boolean mintHashCash() {
+        try {
+            hashCash = HashCash.mintCash(id + "", 1);
+            return true;
+        } catch (NoSuchAlgorithmException e) {
+            LOG.warning(e.getLocalizedMessage());
+            return false;
         }
     }
 
