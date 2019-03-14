@@ -6,4 +6,9 @@ package io.onemfive.proxy.packet;
  * @author objectorange
  */
 public class ProxyStats extends ProxyPacket {
+
+    public ProxyStats(boolean hashCashIt) {
+        super(hashCashIt);
+    }
+
 }

@@ -101,17 +101,16 @@ public class ProxyDaemon {
         config.setProperty("1m5.dir.base",oneMFiveDir);
         LOG.config("1M5 Root Directory: "+oneMFiveDir);
 
-        // Start DCDN Service
-        String nodeUsername = config.getProperty("username");
-        if(nodeUsername==null) {
-            LOG.severe("node username required.");
-            return;
-        }
-        String nodePassphrase = config.getProperty("passphrase");
-        if(nodePassphrase == null) {
-            LOG.severe("node passphrase required.");
-            return;
-        }
+//        String nodeUsername = config.getProperty("username");
+//        if(nodeUsername==null) {
+//            LOG.severe("node username required.");
+//            return;
+//        }
+//        String nodePassphrase = config.getProperty("passphrase");
+//        if(nodePassphrase == null) {
+//            LOG.severe("node passphrase required.");
+//            return;
+//        }
 
         // Getting ClientAppManager starts 1M5 Bus
         OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);

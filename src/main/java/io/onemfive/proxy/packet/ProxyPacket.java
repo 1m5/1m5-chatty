@@ -17,22 +17,24 @@ public abstract class ProxyPacket extends ServiceRequest {
 
     private static Logger LOG = Logger.getLogger(ProxyPacket.class.getName());
 
-    private Long id;
+    protected Long id;
     protected Map<String,Object> fromPeer;
     protected Map<String,Object> toPeer;
     protected String data;
-    private long timeSent = 0;
-    private long timeDelivered = 0;
-    private long timeAcknowledged = 0;
+    protected long timeSent = 0;
+    protected long timeDelivered = 0;
+    protected long timeAcknowledged = 0;
 
     private HashCash hashCash;
 
-    public ProxyPacket() {
+    public ProxyPacket(boolean hashCashIt) {
         id = new Random(System.currentTimeMillis()).nextLong();
-        try {
-            hashCash = HashCash.mintCash(new Random().nextLong()+"",1);
-        } catch (NoSuchAlgorithmException e) {
-            LOG.warning(e.getLocalizedMessage());
+        if(hashCashIt) {
+            try {
+                hashCash = HashCash.mintCash(id + "", 1);
+            } catch (NoSuchAlgorithmException e) {
+                LOG.warning(e.getLocalizedMessage());
+            }
         }
     }
 
