@@ -7,12 +7,15 @@ import io.onemfive.core.keyring.GenerateKeyRingCollectionsRequest;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.content.Text;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
+import io.onemfive.proxy.packet.SendMessagePacket;
 import io.onemfive.sensors.SensorRequest;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -21,11 +24,11 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class APIHandler extends EnvelopeJSONDataHandler {
+public class ProxyAPIHandler extends EnvelopeJSONDataHandler {
 
-    private static Logger LOG = Logger.getLogger(APIHandler.class.getName());
+    private static Logger LOG = Logger.getLogger(ProxyAPIHandler.class.getName());
 
-    public APIHandler(){}
+    public ProxyAPIHandler(){}
 
     /**
      * Pack Envelope into appropriate inbound request and route to bus
@@ -80,10 +83,17 @@ public class APIHandler extends EnvelopeJSONDataHandler {
             case "send": {
                 LOG.info("Send request..");
                 String msg = params.get("m");
-                e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
-                SensorRequest r = new SensorRequest();
+                Text t;
+                try {
+                    t = new Text(msg.getBytes("UTF-8"),"msg", true, true);
+                    SendMessagePacket packet = new SendMessagePacket(t,true);
+                    e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
+                    SensorRequest r = new SensorRequest();
 
-                sensor.send(e);
+                    sensor.send(e);
+                } catch (UnsupportedEncodingException e1) {
+                    LOG.warning(e1.getLocalizedMessage());
+                }
                 break;
             }
             case "stats": {

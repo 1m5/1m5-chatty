@@ -7,13 +7,22 @@ import io.onemfive.core.admin.AdminService;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.client.ClientStatusListener;
-import io.onemfive.data.Envelope;
+import io.onemfive.core.keyring.AuthNRequest;
+import io.onemfive.core.keyring.KeyRingService;
+import io.onemfive.core.notification.NotificationService;
+import io.onemfive.core.notification.SubscriptionRequest;
+import io.onemfive.data.*;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.JSONParser;
+import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
+import io.onemfive.proxy.packet.ProxyPacket;
+import io.onemfive.proxy.packet.SendMessagePacket;
 import io.onemfive.sensormanager.neo4j.SensorManagerNeo4j;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
+import io.onemfive.sensors.SensorRequest;
 import io.onemfive.sensors.SensorsService;
 
 import java.io.File;
@@ -29,15 +38,89 @@ public class ProxyDaemon {
 
     private enum Status {Shutdown, Initializing, Initialized, Starting, Running, ShuttingDown, Errored, Exiting}
 
-    private static final ProxyDaemon instance = new ProxyDaemon();
+    protected static Properties config;
+    protected static ProxyDaemon proxyDaemon;
 
-    private static ClientAppManager manager;
-    private static ClientAppManager.Status clientAppManagerStatus;
-    private static Client client;
-    private static Properties config;
-    private static boolean running = false;
-    private static Scanner scanner;
-    private static Status status = Status.Shutdown;
+    protected ClientAppManager manager;
+    protected ClientAppManager.Status clientAppManagerStatus;
+    protected Client client;
+    protected boolean running = false;
+    protected Scanner scanner;
+    protected Status status = Status.Shutdown;
+
+    protected NetworkPeer localPeer;
+
+    public void routeIn(Envelope envelope) {
+        LOG.info("Route In from Notification Service...");
+        DID fromDid = envelope.getDID();
+        LOG.info("From DID pulled from Envelope.");
+        NetworkPeer fromPeer = new NetworkPeer(NetworkPeer.Network.IMS.name());
+        fromPeer.setDid(fromDid);
+        EventMessage m = (EventMessage)envelope.getMessage();
+        Object msg = m.getMessage();
+        Object obj;
+        if(msg instanceof String) {
+            // Raw
+            Map<String, Object> mp = (Map<String, Object>) JSONParser.parse(msg);
+            String type = (String) mp.get("type");
+            if (type == null) {
+                LOG.warning("Attribute 'type' not found in EventMessage message. Unable to instantiate object.");
+                return;
+            }
+            try {
+                obj = Class.forName(type).newInstance();
+            } catch (InstantiationException e) {
+                LOG.warning("Unable to instantiate class: " + type);
+                return;
+            } catch (IllegalAccessException e) {
+                LOG.severe(e.getLocalizedMessage());
+                return;
+            } catch (ClassNotFoundException e) {
+                LOG.warning("Class not on classpath: " + type);
+                return;
+            }
+            if (obj instanceof ProxyPacket) {
+                LOG.info("Object a ProxyPacket...");
+                ProxyPacket packet = (ProxyPacket) obj;
+                packet.fromMap(mp);
+                packet.setTimeDelivered(System.currentTimeMillis());
+                switch (type) {
+                    case "io.onemfive.pureos.packet.SendMessagePacket": {
+                        sendMessageIn((SendMessagePacket) packet);
+                        break;
+                    }
+                    default:
+                        LOG.warning(obj+" not yet supported. ");
+                }
+            } else {
+                LOG.warning("Object " + obj.getClass().getName() + " not handled.");
+            }
+        } else if(msg instanceof DID) {
+            LOG.info("Route in DID...");
+            updateI2PAddress((DID)msg);
+        } else {
+            LOG.warning("EnvelopeMessage message "+msg.getClass().getName()+" not handled.");
+        }
+    }
+
+    private void updateI2PAddress(DID did) {
+        localPeer = new NetworkPeer(NetworkPeer.Network.IMS.name());
+        localPeer.setDid(did);
+    }
+
+    private void sendMessageIn(SendMessagePacket packet) {
+        LOG.info("Received SendMessagePacket...");
+
+    }
+
+    private void sendMessageOut(SendMessagePacket packet) {
+        LOG.info("Sending Message out...");
+        Envelope e = Envelope.documentFactory();
+        e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
+        SensorRequest r = new SensorRequest();
+        r.content = new String(packet.getMessage().getBody());
+        client.request(e);
+    }
 
     public static void main(String[] args) {
         System.out.println("Welcome to 1M5 Proxy Daemon. Starting 1M5 Service...");
@@ -68,10 +151,11 @@ public class ProxyDaemon {
 //            scanner.close();
 //        } else {
             try {
-                instance.launch();
+                proxyDaemon = new ProxyDaemon();
+                proxyDaemon.launch();
                 // Check periodically to see if 1M5 stopped
-                while (instance.clientAppManagerStatus != ClientAppManager.Status.STOPPED) {
-                    instance.waitABit(2 * 1000);
+                while (proxyDaemon.clientAppManagerStatus != ClientAppManager.Status.STOPPED) {
+                    proxyDaemon.waitABit(2 * 1000);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -84,7 +168,7 @@ public class ProxyDaemon {
         System.exit(0);
     }
 
-    private void launch() throws Exception {
+    protected void launch() throws Exception {
 
         // Directories
         String rootDir = config.getProperty("1m5.dir.root");
@@ -101,16 +185,16 @@ public class ProxyDaemon {
         config.setProperty("1m5.dir.base",oneMFiveDir);
         LOG.config("1M5 Root Directory: "+oneMFiveDir);
 
-//        String nodeUsername = config.getProperty("username");
-//        if(nodeUsername==null) {
-//            LOG.severe("node username required.");
-//            return;
-//        }
-//        String nodePassphrase = config.getProperty("passphrase");
-//        if(nodePassphrase == null) {
-//            LOG.severe("node passphrase required.");
-//            return;
-//        }
+        String username = config.getProperty("username");
+        if(username==null) {
+            LOG.severe("node username required.");
+            return;
+        }
+        String passphrase = config.getProperty("passphrase");
+        if(passphrase == null) {
+            LOG.severe("node passphrase required.");
+            return;
+        }
 
         // Getting ClientAppManager starts 1M5 Bus
         OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
@@ -183,15 +267,59 @@ public class ProxyDaemon {
         // Register Services
         DLC.addRoute(AdminService.class, AdminService.OPERATION_REGISTER_SERVICES,e);
         client.request(e);
+
+        Subscription subscription = new Subscription() {
+            @Override
+            public void notifyOfEvent(Envelope e) {
+                routeIn(e);
+            }
+        };
+
+        // Subscribe to Text notifications
+        SubscriptionRequest r = new SubscriptionRequest(EventMessage.Type.TEXT, subscription);
+        Envelope e2 = Envelope.documentFactory();
+        DLC.addData(SubscriptionRequest.class, r, e2);
+        DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE, e2);
+        client.request(e2);
+
+        // Subscribe to DID status notifications
+        SubscriptionRequest r2 = new SubscriptionRequest(EventMessage.Type.STATUS_DID, subscription);
+        Envelope e3 = Envelope.documentFactory();
+        DLC.addData(SubscriptionRequest.class, r2, e3);
+        DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE, e3);
+        client.request(e3);
+
+        Envelope e4 = Envelope.documentFactory();
+
+        // 2. Authenticate DID
+        DID did = new DID();
+        did.setUsername(username);
+        did.setPassphrase(passphrase);
+        AuthenticateDIDRequest adr = new AuthenticateDIDRequest();
+        adr.did = did;
+        adr.autogenerate = true;
+        DLC.addData(AuthenticateDIDRequest.class, adr, e4);
+        DLC.addRoute(DIDService.class, DIDService.OPERATION_AUTHENTICATE, e4);
+
+        // 1. Load Public Key addresses for short and full addresses
+        AuthNRequest ar = new AuthNRequest();
+        ar.keyRingUsername = username;
+        ar.keyRingPassphrase = passphrase;
+        ar.alias = username; // use username as default alias
+        ar.aliasPassphrase = passphrase; // just use same passphrase
+        ar.autoGenerate = true;
+        DLC.addData(AuthNRequest.class, ar, e4);
+        DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_AUTHN, e4);
+        client.request(e4);
     }
 
-    private static void waitABit(long waitTime) {
+    protected void waitABit(long waitTime) {
         try {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {}
     }
 
-    private static void printMenu() {
+    private void printMenu() {
         System.out.println("The following commands are available: ");
         switch(status) {
             case Shutdown: {
@@ -212,7 +340,7 @@ public class ProxyDaemon {
         }
     }
 
-    private static void processCommand(String command) {
+    private void processCommand(String command) {
         switch (command) {
             case "c" : {
                 if(status == Status.Initialized || status == Status.Running) {
@@ -287,7 +415,7 @@ public class ProxyDaemon {
         }
     }
 
-    private static void initialize() throws Exception {
+    private void initialize() throws Exception {
         // Directories
         String rootDir = config.getProperty("1m5-proxy.dir.base");
         if(rootDir == null) {
@@ -309,7 +437,7 @@ public class ProxyDaemon {
         System.out.println("1M5 Root Directory: "+oneMFiveDir);
     }
 
-    private static void startService(String nodeUsername, String nodePassphrase) {
+    private void startService(String nodeUsername, String nodePassphrase) {
         // Start DCDN Service
         config.setProperty("username", nodeUsername);
         config.setProperty("passphrase", nodePassphrase);
@@ -403,7 +531,7 @@ public class ProxyDaemon {
         }
     }
 
-    private static boolean loadLoggingProperties(Properties p) {
+    protected static boolean loadLoggingProperties(Properties p) {
         String logPropsPathStr = p.getProperty("java.util.logging.config.file");
         if(logPropsPathStr != null) {
             File logPropsPathFile = new File(logPropsPathStr);
