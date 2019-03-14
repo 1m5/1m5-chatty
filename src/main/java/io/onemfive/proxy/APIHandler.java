@@ -87,7 +87,7 @@ public class APIHandler extends EnvelopeJSONDataHandler {
                 break;
             }
             case "stats": {
-                LOG.info("Stats request...");
+                LOG.info("ProxyStats request...");
 
 //                sensor.send(e);
                 break;
@@ -113,7 +113,7 @@ public class APIHandler extends EnvelopeJSONDataHandler {
                 break;
             }
             case "stats": {
-                LOG.info("Stats response...");
+                LOG.info("ProxyStats response...");
 
                 break;
             }

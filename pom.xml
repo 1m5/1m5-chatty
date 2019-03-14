@@ -5,14 +5,14 @@
 
 	<groupId>io.onemfive</groupId>
 	<artifactId>proxy</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.6.1-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<onemfive.version>0.6.0</onemfive.version>
+		<onemfive.version>0.6.1-SNAPSHOT</onemfive.version>
 	</properties>
 
 	<name>1m5-proxy</name>
@@ -32,14 +32,17 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git@github.com/1m5/1m5-chatty</connection>
-		<developerConnection>scm:git@github.com/1m5/1m5-chatty</developerConnection>
-		<url>git@github.com/1m5/1m5-chatty</url>
+		<connection>scm:git@github.com/1m5/1m5-proxy</connection>
+		<developerConnection>scm:git@github.com/1m5/1m5-proxy</developerConnection>
+		<url>git@github.com/1m5/1m5-proxy</url>
 	</scm>
 
 	<profiles>
 		<profile>
 			<id>devnet</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<properties>
 				
 			</properties>
@@ -94,7 +97,7 @@
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>i2p</artifactId>
-			<version>${onemfive.version}</version>
+			<version>0.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
@@ -179,7 +182,7 @@
 				<!--<configuration>-->
 					<!--<archive>-->
 						<!--<manifest>-->
-							<!--<mainClass>io.onemfive.chatty.Daemon</mainClass>-->
+							<!--<mainClass>io.onemfive.chatty.ProxyDaemon</mainClass>-->
 						<!--</manifest>-->
 					<!--</archive>-->
 					<!--<descriptorRefs>-->

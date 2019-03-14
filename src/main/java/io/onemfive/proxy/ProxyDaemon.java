@@ -23,13 +23,13 @@ import java.util.*;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-public class Daemon {
+public class ProxyDaemon {
 
-    private static final Logger LOG = Logger.getLogger(Daemon.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProxyDaemon.class.getName());
 
     private enum Status {Shutdown, Initializing, Initialized, Starting, Running, ShuttingDown, Errored, Exiting}
 
-    private static final Daemon instance = new Daemon();
+    private static final ProxyDaemon instance = new ProxyDaemon();
 
     private static ClientAppManager manager;
     private static ClientAppManager.Status clientAppManagerStatus;
@@ -40,7 +40,7 @@ public class Daemon {
     private static Status status = Status.Shutdown;
 
     public static void main(String[] args) {
-        System.out.println("Welcome to 1M5 Chatty Daemon. Starting 1M5 Service...");
+        System.out.println("Welcome to 1M5 Proxy Daemon. Starting 1M5 Service...");
         Properties p = new Properties();
         String[] parts;
         for(String arg : args) {
@@ -51,7 +51,7 @@ public class Daemon {
         loadLoggingProperties(p);
 
         try {
-            config = Config.loadFromClasspath("1m5-chatty.config", p, false);
+            config = Config.loadFromClasspath("1m5-proxy.config", p, false);
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
             System.exit(-1);
@@ -80,23 +80,18 @@ public class Daemon {
             }
 //        }
 
-        System.out.println("1M5 Chatty Daemon exiting...");
+        System.out.println("1M5 Proxy Daemon exiting...");
         System.exit(0);
     }
 
     private void launch() throws Exception {
 
         // Directories
-        String rootDir = config.getProperty("1m5-chatty.dir.base");
+        String rootDir = config.getProperty("1m5.dir.root");
         if(rootDir == null) {
-            rootDir = System.getProperty("user.dir") + "/chat";
-            config.setProperty("1m5-chatty.dir.base",rootDir);
+            rootDir = System.getProperty("user.dir");
+            config.setProperty("1m5.dir.root",rootDir);
         }
-        File ikFolder = new File(rootDir);
-        if(!ikFolder.exists())
-            if(!ikFolder.mkdir())
-                throw new Exception("Unable to create 1M5-Chatty directory: "+rootDir);
-        LOG.config("1M5-Chatty Root Directory: "+rootDir);
 
         String oneMFiveDir = rootDir + "/.1m5";
         File oneMFiveFolder = new File(oneMFiveDir);
@@ -201,18 +196,18 @@ public class Daemon {
         System.out.println("The following commands are available: ");
         switch(status) {
             case Shutdown: {
-                System.out.println("\tin - Initializing the 1M5 Chatty Daemon.");
+                System.out.println("\tin - Initializing the 1M5 Proxy Daemon.");
                 System.out.println("\tq  - Quit.");
                 break;
             }
             case Initialized: {
-                System.out.println("\tst - Start the 1M5 Chatty Daemon.");
+                System.out.println("\tst - Start the 1M5 Proxy Daemon.");
                 System.out.println("\tc  - Print Config.");
                 System.out.println("\tq  - Quit.");
                 break;
             }
             case Running: {
-                System.out.println("\tsd - Shutdown the 1M5 Chatty Daemon.");
+                System.out.println("\tsd - Shutdown the 1M5 Proxy Daemon.");
                 System.out.println("\tc  - Print Config.");
             }
         }
@@ -231,7 +226,7 @@ public class Daemon {
                 break;
             }
             case "q" : {
-                System.out.println("Exiting 1M5 Chatty Daemon....");
+                System.out.println("Exiting 1M5 Proxy Daemon....");
                 status = Status.Exiting;
                 System.exit(0);
                 break;
@@ -242,15 +237,15 @@ public class Daemon {
                     printMenu();
                     return;
                 }
-                System.out.println("Initializing 1M5 Chatty Daemon....");
+                System.out.println("Initializing 1M5 Proxy Daemon....");
                 status = Status.Initializing;
                 try {
                     initialize();
                     status = Status.Initialized;
-                    System.out.println("1M5 Chatty Daemon Initialized.");
+                    System.out.println("1M5 Proxy Daemon Initialized.");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    System.out.println("1M5 Chatty Daemon failed to Initialize.");
+                    System.out.println("1M5 Proxy Daemon failed to Initialize.");
                 }
                 break;
             }
@@ -260,7 +255,7 @@ public class Daemon {
                     printMenu();
                     return;
                 }
-                System.out.println("Starting 1M5 Chatty Daemon....");
+                System.out.println("Starting 1M5 Proxy Daemon....");
                 status = Status.Starting;
                 String username = null;
                 while(username==null) {
@@ -274,7 +269,7 @@ public class Daemon {
                 }
                 startService(username, passphrase);
                 status = Status.Running;
-                System.out.println("1M5 Chatty Daemon Running.");
+                System.out.println("1M5 Proxy Daemon Running.");
                 break;
             }
             case "sd": {
@@ -283,11 +278,11 @@ public class Daemon {
                     printMenu();
                     return;
                 }
-                System.out.println("Shutting Down 1M5 Chatty Daemon....");
+                System.out.println("Shutting Down 1M5 Proxy Daemon....");
                 status = Status.ShuttingDown;
                 stopService();
                 status = Status.Shutdown;
-                System.out.println("1M5 Chatty Daemon Shutdown.");
+                System.out.println("1M5 Proxy Daemon Shutdown.");
                 break;
             }
         }
@@ -295,16 +290,16 @@ public class Daemon {
 
     private static void initialize() throws Exception {
         // Directories
-        String rootDir = config.getProperty("1m5-chatty.dir.base");
+        String rootDir = config.getProperty("1m5-proxy.dir.base");
         if(rootDir == null) {
             rootDir = System.getProperty("user.dir") + "/chat";
-            config.setProperty("1m5-chatty.dir.base",rootDir);
+            config.setProperty("1m5-proxy.dir.base",rootDir);
         }
         File ikFolder = new File(rootDir);
         if(!ikFolder.exists())
             if(!ikFolder.mkdir())
-                throw new Exception("Unable to create 1M5 Chatty directory: "+rootDir);
-        System.out.println("1M5 Chatty Root Directory: "+rootDir);
+                throw new Exception("Unable to create 1M5 Proxy directory: "+rootDir);
+        System.out.println("1M5 Proxy Root Directory: "+rootDir);
 
         String oneMFiveDir = rootDir + "/.1m5";
         File oneMFiveFolder = new File(oneMFiveDir);
@@ -402,7 +397,7 @@ public class Daemon {
     }
 
     private static void printConfig() {
-        System.out.println("1M5 Chatty Configuration:");
+        System.out.println("1M5 Proxy Configuration:");
         Set<String> names = config.stringPropertyNames();
         for(String n : names) {
             System.out.println("\t"+n+"  : "+config.getProperty(n));

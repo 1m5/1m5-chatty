@@ -1,6 +1,6 @@
 # 1M5 Proxy
 Starts the 1M5 daemon as a proxy.
-- Either download 1m5-chatty.deb from releases or build it yourself (below).
+- Either download 1m5-proxy.deb from releases or build it yourself (below).
 - Ensure OpenJDK 8 or above is installed.
     - Linux: https://openjdk.java.net/install/
     - Mac: https://www.youtube.com/watch?v=y6szNJ4rMZ0
@@ -11,24 +11,33 @@ When downloading releases, please ensure you're downloading the correct 1m5-prox
 - **devnet**: development
 - **demonet**: demos 
 - **integrationnet**: automated quality assurance integrated testing (CI use only)
-- **testnet**: testing Purism apps integration prior to connecting to mainnet
+- **testnet**: testing 1M5 dapps integration prior to connecting to mainnet
 - **mainnet**: live production network
 
 https://github.com/1m5/1m5-proxy/releases
 
-## Builds
-1. First build the 1M5 core by cloning the 1m5-core repo and all dependent repos (look in pom.xml).
-2. Build all repos in order of dependency starting with 1m5-data and ending with 1m5-chatty:
-    1. 1m5-data
-    2. 1m5-core
-    3. 1m5-did
-    4. 1m5-sensors
-    5. 1m5-neo4j
-    6. 1m5-sensormanager-neo4j
-    7. 1m5-i2p
-    8. 1m5-clearnet-server
-    9. 1m5-chatty
-3. NOTE: Ensure you set the correct maven profiles for 1m5-chatty.
+## Build
+
+### Install OpenJDK 8 or above
+
+### Install latest Maven
+
+### Install latest Git
+
+### Build Git Repositories in order
+Create a folder in your home directory (~) called Projects.
+Within in Projects, create a folder called 1M5.
+For each repository below, 
+
+1. 1m5-data
+2. 1m5-core
+3. 1m5-did
+4. 1m5-sensors
+5. 1m5-neo4j
+6. 1m5-sensormanager-neo4j
+7. 1m5-i2p
+8. 1m5-clearnet-server
+9. 1m5-proxy
 
 ### Maven Profiles
 Build project with your appropriate network set in maven profile:
