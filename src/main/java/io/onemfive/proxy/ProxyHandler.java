@@ -7,13 +7,16 @@ import io.onemfive.core.keyring.GenerateKeyRingCollectionsRequest;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.data.DID;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.NetworkPeer;
 import io.onemfive.data.content.Text;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
 import io.onemfive.proxy.packet.SendMessagePacket;
+import io.onemfive.sensormanager.graph.GraphMapper;
 import io.onemfive.sensors.SensorRequest;
+import io.onemfive.sensors.SensorsService;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -24,11 +27,11 @@ import java.util.logging.Logger;
  *
  * @author objectorange
  */
-public class ProxyAPIHandler extends EnvelopeJSONDataHandler {
+public class ProxyHandler extends EnvelopeJSONDataHandler {
 
-    private static Logger LOG = Logger.getLogger(ProxyAPIHandler.class.getName());
+    private static Logger LOG = Logger.getLogger(ProxyHandler.class.getName());
 
-    public ProxyAPIHandler(){}
+    public ProxyHandler(){}
 
     /**
      * Pack Envelope into appropriate inbound request and route to bus
@@ -83,13 +86,23 @@ public class ProxyAPIHandler extends EnvelopeJSONDataHandler {
             case "send": {
                 LOG.info("Send request..");
                 String msg = params.get("m");
+                String from = params.get("f");
+                String to = params.get("t");
                 Text t;
+                NetworkPeer npFrom;
+                NetworkPeer npTo;
                 try {
                     t = new Text(msg.getBytes("UTF-8"),"msg", true, true);
-                    SendMessagePacket packet = new SendMessagePacket(t,true);
-                    e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
-                    SensorRequest r = new SensorRequest();
 
+                    SendMessagePacket packet = new SendMessagePacket(t,true);
+                    String json = JSONParser.toString(packet.toMap());
+                    LOG.info("Content to send: "+json);
+                    SensorRequest r = new SensorRequest();
+                    r.from = GraphMapper.mapToPeer(packet.getFromPeer()).getDid();
+                    r.to = GraphMapper.mapToPeer(packet.getToPeer()).getDid();
+                    r.content = json;
+                    DLC.addData(SensorRequest.class, r, e);
+                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND, e);
                     sensor.send(e);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
@@ -137,4 +150,5 @@ public class ProxyAPIHandler extends EnvelopeJSONDataHandler {
         }
         return JSONParser.toString(m);
     }
+
 }
