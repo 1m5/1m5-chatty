@@ -12,7 +12,7 @@ import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
-import io.onemfive.proxy.packet.SendMessagePacket;
+import io.onemfive.proxy.packet.SendContentPacket;
 import io.onemfive.sensors.SensorRequest;
 import io.onemfive.sensors.SensorsService;
 
@@ -21,8 +21,9 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Handles all requests from local browser.
  *
+ * @since 0.6.1
  * @author objectorange
  */
 public class ProxyHandler extends EnvelopeJSONDataHandler {
@@ -92,29 +93,30 @@ public class ProxyHandler extends EnvelopeJSONDataHandler {
                 String msg = params.get("m");
                 String from = params.get("f");
                 String to = params.get("t");
-                Text t;
+                Text t = null;
                 NetworkPeer npFrom;
                 NetworkPeer npTo;
                 try {
                     t = new Text(msg.getBytes("UTF-8"),"msg", true, true);
-                    npFrom = proxyClient.graph.loadPeer(from);
-                    npTo = proxyClient.graph.loadPeer(to);
-                    SendMessagePacket packet = new SendMessagePacket(t,true);
-                    packet.setFromPeer(npFrom.toMap());
-                    packet.setToPeer(npTo.toMap());
-                    packet.setMessage(t);
-                    String json = JSONParser.toString(packet.toMap());
-                    LOG.info("Content to send: "+json);
-                    SensorRequest r = new SensorRequest();
-                    r.from = npFrom.getDid();
-                    r.to = npTo.getDid();
-                    r.content = json;
-                    DLC.addData(SensorRequest.class, r, e);
-                    DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND, e);
-                    sensor.send(e);
                 } catch (UnsupportedEncodingException e1) {
                     LOG.warning(e1.getLocalizedMessage());
+                    break; // No real chance of happening
                 }
+                npFrom = proxyClient.graph.loadPeer(from);
+                npTo = proxyClient.graph.loadPeer(to);
+                SendContentPacket packet = new SendContentPacket(t,true);
+                packet.setFromPeer(npFrom);
+                packet.setToPeer(npTo);
+                packet.setContent(t);
+                String json = JSONParser.toString(packet.toMap());
+                LOG.info("Content to send: "+json);
+                SensorRequest r = new SensorRequest();
+                r.from = npFrom.getDid();
+                r.to = npTo.getDid();
+                r.content = json;
+                DLC.addData(SensorRequest.class, r, e);
+                DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND, e);
+                sensor.send(e);
                 break;
             }
             case "stats": {

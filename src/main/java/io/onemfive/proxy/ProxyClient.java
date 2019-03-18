@@ -11,15 +11,16 @@ import io.onemfive.core.keyring.AuthNRequest;
 import io.onemfive.core.keyring.KeyRingService;
 import io.onemfive.core.notification.NotificationService;
 import io.onemfive.core.notification.SubscriptionRequest;
-import io.onemfive.core.util.AppThread;
 import io.onemfive.data.*;
+import io.onemfive.data.content.Content;
+import io.onemfive.data.content.Text;
 import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
 import io.onemfive.proxy.packet.ProxyPacket;
-import io.onemfive.proxy.packet.SendMessagePacket;
+import io.onemfive.proxy.packet.SendContentPacket;
 import io.onemfive.sensormanager.graph.SensorManagerGraph;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
@@ -33,8 +34,9 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Encapsulates all client interactions for {@link ProxyDaemon}
  *
+ * @since 0.6.1
  * @author objectorange
  */
 public class ProxyClient implements LifeCycle {
@@ -42,6 +44,7 @@ public class ProxyClient implements LifeCycle {
     private Logger LOG = Logger.getLogger(ProxyClient.class.getName());
 
     protected Properties config;
+    protected List<ProxyObserver> observers;
 
     ClientAppManager manager;
     protected ClientAppManager.Status clientAppManagerStatus;
@@ -84,8 +87,8 @@ public class ProxyClient implements LifeCycle {
                 packet.fromMap(mp);
                 packet.setTimeDelivered(System.currentTimeMillis());
                 switch (type) {
-                    case "io.onemfive.proxy.packet.SendMessagePacket": {
-                        sendMessageIn((SendMessagePacket) packet);
+                    case "io.onemfive.proxy.packet.SendContentPacket": {
+                        sendContentIn((SendContentPacket) packet);
                         break;
                     }
                     default:
@@ -103,23 +106,36 @@ public class ProxyClient implements LifeCycle {
         }
     }
 
-    private void sendMessageIn(SendMessagePacket packet) {
-        LOG.info("Received SendMessagePacket...");
-
+    private void sendContentIn(SendContentPacket packet) {
+        LOG.info("Received SendContentPacket...");
+        // TODO: Persist Content
+        Content c = packet.getContent();
+        if(c instanceof Text) {
+            Text t = (Text)c;
+            LOG.info("Received text from peer: "+new String(t.getBody()));
+            for(ProxyObserver o : observers) {
+                o.messageReceived(packet);
+            }
+        } else {
+            LOG.warning("Content type not currently supported: "+c.getClass().getName());
+        }
     }
 
-    private void sendMessageOut(SendMessagePacket packet) {
-        LOG.info("Sending Message out...");
+    private void sendContentOut(SendContentPacket packet) {
+        LOG.info("Sending Content out...");
         Envelope e = Envelope.documentFactory();
         e.setSensitivity(Envelope.Sensitivity.HIGH); // Flag for I2P
         SensorRequest r = new SensorRequest();
-        r.content = new String(packet.getMessage().getBody());
+        r.from = packet.getFromPeer().getDid();
+        r.to = packet.getToPeer().getDid();
+        r.content = new String(packet.getContent().getBody());
         client.request(e);
     }
 
     @Override
     public boolean start(Properties properties) {
-        this.config = properties;
+        config = properties;
+        observers = new ArrayList<>();
         // Getting ClientAppManager starts 1M5 Bus
         OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
         manager = oneMFiveAppContext.getClientAppManager();

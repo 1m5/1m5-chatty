@@ -11,6 +11,12 @@ import java.util.*;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+/**
+ * 1M5 Daemon as a Proxy
+ *
+ * @since 0.6.1
+ * @author objectorange
+ */
 public class ProxyDaemon {
 
     private static final Logger LOG = Logger.getLogger(ProxyDaemon.class.getName());
