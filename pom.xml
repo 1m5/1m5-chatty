@@ -44,31 +44,31 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				
+				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
 			</properties>
 		</profile>
 		<profile>
 			<id>demonet</id>
 			<properties>
-			
+				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
 			</properties>
 		</profile>
 		<profile>
 			<id>integrationnet</id>
 			<properties>
-			
+				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
 			</properties>
 		</profile>
 		<profile>
 			<id>testnet</id>
 			<properties>
-			
+				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
 			</properties>
 		</profile>
 		<profile>
 			<id>mainnet</id>
 			<properties>
-			
+				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
 			</properties>
 		</profile>
 	</profiles>
@@ -126,6 +126,11 @@
 					<include>**/*.properties</include>
 					<include>**/*.config</include>
 				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/web</directory>
+				<filtering>false</filtering>
+				<targetPath>io/onemfive/proxy/ui</targetPath>
 			</resource>
 		</resources>
 		<pluginManagement>

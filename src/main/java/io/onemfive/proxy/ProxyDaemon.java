@@ -205,6 +205,7 @@ public class ProxyDaemon {
 
     private void startService() {
         proxyClient = new ProxyClient();
+        ProxyHandler.setProxyClient(proxyClient);
         new AppThread(new Runnable() {
             @Override
             public void run() {

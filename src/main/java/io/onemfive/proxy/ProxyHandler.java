@@ -1,7 +1,6 @@
 package io.onemfive.proxy;
 
 import io.onemfive.clearnet.server.EnvelopeJSONDataHandler;
-import io.onemfive.clearnet.server.Session;
 import io.onemfive.core.keyring.AuthNRequest;
 import io.onemfive.core.keyring.GenerateKeyRingCollectionsRequest;
 import io.onemfive.core.keyring.KeyRingService;
@@ -14,7 +13,6 @@ import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
 import io.onemfive.proxy.packet.SendMessagePacket;
-import io.onemfive.sensormanager.graph.GraphMapper;
 import io.onemfive.sensors.SensorRequest;
 import io.onemfive.sensors.SensorsService;
 
@@ -31,7 +29,13 @@ public class ProxyHandler extends EnvelopeJSONDataHandler {
 
     private static Logger LOG = Logger.getLogger(ProxyHandler.class.getName());
 
+    private static ProxyClient proxyClient;
+
     public ProxyHandler(){}
+
+    public static void setProxyClient(ProxyClient client) {
+        proxyClient = client;
+    }
 
     /**
      * Pack Envelope into appropriate inbound request and route to bus
@@ -40,8 +44,8 @@ public class ProxyHandler extends EnvelopeJSONDataHandler {
     @Override
     protected void route(Envelope e) {
         String command = e.getCommandPath();
-        String sessionId = (String)e.getHeader(Session.class.getName());
-        Session session = activeSessions.get(sessionId);
+//        String sessionId = (String)e.getHeader(Session.class.getName());
+//        Session session = activeSessions.get(sessionId);
         Map<String,String> params = (Map<String,String>)DLC.getData(Map.class, e);
         switch(command) {
             case "identify": {
@@ -93,13 +97,17 @@ public class ProxyHandler extends EnvelopeJSONDataHandler {
                 NetworkPeer npTo;
                 try {
                     t = new Text(msg.getBytes("UTF-8"),"msg", true, true);
-
+                    npFrom = proxyClient.graph.loadPeer(from);
+                    npTo = proxyClient.graph.loadPeer(to);
                     SendMessagePacket packet = new SendMessagePacket(t,true);
+                    packet.setFromPeer(npFrom.toMap());
+                    packet.setToPeer(npTo.toMap());
+                    packet.setMessage(t);
                     String json = JSONParser.toString(packet.toMap());
                     LOG.info("Content to send: "+json);
                     SensorRequest r = new SensorRequest();
-                    r.from = GraphMapper.mapToPeer(packet.getFromPeer()).getDid();
-                    r.to = GraphMapper.mapToPeer(packet.getToPeer()).getDid();
+                    r.from = npFrom.getDid();
+                    r.to = npTo.getDid();
                     r.content = json;
                     DLC.addData(SensorRequest.class, r, e);
                     DLC.addRoute(SensorsService.class, SensorsService.OPERATION_SEND, e);
