@@ -3,9 +3,13 @@ package io.onemfive.proxy;
 import io.onemfive.core.Config;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.util.AppThread;
+import io.onemfive.data.Hash;
+import io.onemfive.data.util.FileUtil;
+import io.onemfive.data.util.HashUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.LogManager;
@@ -46,8 +50,6 @@ public class ProxyDaemon {
             parts = arg.split("=");
             p.setProperty(parts[0],parts[1]);
         }
-
-        loadLoggingProperties(p);
 
         try {
             config = Config.loadFromClasspath(configFile, p, false);
@@ -180,13 +182,14 @@ public class ProxyDaemon {
     }
 
     private boolean initialize() throws Exception {
-        // Directories
+        // Root Dir
         String rootDir = config.getProperty("1m5.dir.root");
         if(rootDir == null) {
             rootDir = System.getProperty("user.dir");
             config.setProperty("1m5.dir.root",rootDir);
         }
 
+        // 1M5 Dir
         String oneMFiveDir = rootDir + "/.1m5";
         File oneMFiveFolder = new File(oneMFiveDir);
         if(!oneMFiveFolder.exists())
@@ -195,16 +198,30 @@ public class ProxyDaemon {
         config.setProperty("1m5.dir.base",oneMFiveDir);
         LOG.config("1M5 Root Directory: "+oneMFiveDir);
 
-        String username = config.getProperty("username");
-        if(username==null) {
-            LOG.severe("node username required.");
-            return false;
+        // Credentials
+        String credFileStr = oneMFiveDir + "/cred";
+        File credFile = new File(credFileStr);
+        if(!credFile.exists())
+            if(!credFile.createNewFile())
+                throw new Exception("Unable to create node credentials file at: "+credFileStr);
+
+        config.setProperty("username","Alice235");
+        String passphrase = FileUtil.readTextFile(credFileStr,1, true);
+        if("".equals(passphrase) ||
+                (config.getProperty("1m5.user.rebuild")!=null && "true".equals(config.getProperty("1m5.user.rebuild")))) {
+            passphrase = HashUtil.generateHash(String.valueOf(System.currentTimeMillis()), Hash.Algorithm.SHA1).getHash();
+            if(!FileUtil.writeFile(passphrase.getBytes(), credFileStr))
+                return false;
+            else
+                LOG.info("New passphrase saved: "+passphrase);
         }
-        String passphrase = config.getProperty("passphrase");
-        if(passphrase == null) {
-            LOG.severe("node passphrase required.");
-            return false;
-        }
+        config.setProperty("passphrase",passphrase);
+
+        // Logging
+        config.setProperty("java.util.logging.config.file",oneMFiveDir+"/log/logging.properties");
+        loadLoggingProperties(config);
+
+        LOG.info("Passphrase loaded: "+passphrase);
 
         return true;
     }
@@ -246,19 +263,30 @@ public class ProxyDaemon {
 
     protected static boolean loadLoggingProperties(Properties p) {
         String logPropsPathStr = p.getProperty("java.util.logging.config.file");
-        if(logPropsPathStr != null) {
+        if(logPropsPathStr!=null) {
             File logPropsPathFile = new File(logPropsPathStr);
             if(logPropsPathFile.exists()) {
                 try {
                     FileInputStream logPropsPath = new FileInputStream(logPropsPathFile);
                     LogManager.getLogManager().readConfiguration(logPropsPath);
-                    return true;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append("handlers = java.util.logging.FileHandler, java.util.logging.ConsoleHandler\n");
+                sb.append(".level="+p.getProperty("log.level")+"\n");
+                sb.append("java.util.logging.FileHandler.pattern = 1m5-proxy-%u.log\n");
+                sb.append("java.util.logging.FileHandler.limit = 1000000\n");
+                sb.append("java.util.logging.FileHandler.count = 1\n");
+                sb.append("java.util.logging.FileHandler.level = "+p.getProperty("log.level")+"\n");
+                sb.append("java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter\n");
+                sb.append("java.util.logging.ConsoleHandler.level = ALL\n");
+                sb.append("java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter\n");
+                FileUtil.writeFile(sb.toString().getBytes(), logPropsPathStr);
             }
         }
-        return false;
+        return true;
     }
 
     protected void waitABit(long waitTime) {

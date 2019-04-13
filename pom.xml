@@ -45,30 +45,35 @@
 			</activation>
 			<properties>
 				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
+				<log.level>INFO</log.level>
 			</properties>
 		</profile>
 		<profile>
 			<id>demonet</id>
 			<properties>
 				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
+				<log.level>INFO</log.level>
 			</properties>
 		</profile>
 		<profile>
 			<id>integrationnet</id>
 			<properties>
 				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
+				<log.level>INFO</log.level>
 			</properties>
 		</profile>
 		<profile>
 			<id>testnet</id>
 			<properties>
 				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
+				<log.level>WARNING</log.level>
 			</properties>
 		</profile>
 		<profile>
 			<id>mainnet</id>
 			<properties>
 				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
+				<log.level>SEVERE</log.level>
 			</properties>
 		</profile>
 	</profiles>
