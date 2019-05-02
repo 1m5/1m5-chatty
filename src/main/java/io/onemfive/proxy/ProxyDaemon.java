@@ -221,8 +221,6 @@ public class ProxyDaemon {
         config.setProperty("java.util.logging.config.file",oneMFiveDir+"/log/logging.properties");
         loadLoggingProperties(config);
 
-        LOG.info("Passphrase loaded: "+passphrase);
-
         return true;
     }
 
@@ -279,6 +277,9 @@ public class ProxyDaemon {
                 sb.append("java.util.logging.FileHandler.pattern = 1m5-proxy-%u.log\n");
                 sb.append("java.util.logging.FileHandler.limit = 1000000\n");
                 sb.append("java.util.logging.FileHandler.count = 1\n");
+                if(p.getProperty("log.level")==null) {
+                    p.setProperty("log.level", "SEVERE");
+                }
                 sb.append("java.util.logging.FileHandler.level = "+p.getProperty("log.level")+"\n");
                 sb.append("java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter\n");
                 sb.append("java.util.logging.ConsoleHandler.level = ALL\n");
