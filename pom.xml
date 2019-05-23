@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>i2p</artifactId>
-			<version>0.6.0</version>
+			<version>${onemfive.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
