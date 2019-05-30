@@ -3,6 +3,7 @@ package io.onemfive.proxy;
 import io.onemfive.core.Config;
 import io.onemfive.core.client.ClientAppManager;
 import io.onemfive.core.util.AppThread;
+import io.onemfive.core.util.SystemSettings;
 import io.onemfive.data.Hash;
 import io.onemfive.data.util.FileUtil;
 import io.onemfive.data.util.HashUtil;
@@ -34,6 +35,12 @@ public class ProxyDaemon {
     protected boolean running = false;
     protected Scanner scanner;
     protected Status status = Status.Shutdown;
+
+    public static File oneMFiveCoreDir;
+    public static File oneMFiveProxyDir;
+    public static File userAppDataDir;
+    public static File userAppConfigDir;
+    public static File userAppCacheDir;
 
     public static void main(String[] args) {
         System.out.println("Welcome to 1M5 Proxy Daemon. Starting 1M5 Service...");
@@ -182,24 +189,76 @@ public class ProxyDaemon {
     }
 
     private boolean initialize() throws Exception {
-        // Root Dir
-        String rootDir = config.getProperty("1m5.dir.root");
-        if(rootDir == null) {
-            rootDir = System.getProperty("user.dir");
-            config.setProperty("1m5.dir.root",rootDir);
+        // Directories
+        String oneMFiveCoreDirStr = config.getProperty("1m5.dir.base");
+        if(oneMFiveCoreDirStr!=null) {
+            oneMFiveCoreDir = new File(oneMFiveCoreDirStr);
+            if(!oneMFiveCoreDir.exists() && !oneMFiveCoreDir.mkdir()) {
+                LOG.warning("Unable to create 1m5.dir.base: "+oneMFiveCoreDirStr);
+                return false;
+            }
+        }  else {
+            oneMFiveCoreDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
+            if (oneMFiveCoreDir == null) {
+                LOG.severe("Unable to create base system directory for 1M5 core.");
+                return false;
+            } else {
+                oneMFiveCoreDirStr = oneMFiveCoreDir.getAbsolutePath();
+                config.put("1m5.dir.base", oneMFiveCoreDirStr);
+            }
         }
+        LOG.info("1M5 Base Directory: "+oneMFiveCoreDirStr);
 
-        // 1M5 Dir
-        String oneMFiveDir = rootDir + "/.1m5";
-        File oneMFiveFolder = new File(oneMFiveDir);
-        if(!oneMFiveFolder.exists())
-            if(!oneMFiveFolder.mkdir())
-                throw new Exception("Unable to create 1M5 base directory: "+oneMFiveDir);
-        config.setProperty("1m5.dir.base",oneMFiveDir);
-        LOG.config("1M5 Root Directory: "+oneMFiveDir);
+        String oneMFiveProxyDirStr = config.getProperty("1m5.proxy.dir.base");
+        if(oneMFiveProxyDirStr!=null) {
+            oneMFiveProxyDir = new File(oneMFiveProxyDirStr);
+            if(!oneMFiveProxyDir.exists() && !oneMFiveProxyDir.mkdir()) {
+                throw new Exception("Unable to create supplied 1m5.dir.base directory: "+oneMFiveProxyDirStr);
+            }
+            userAppDataDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/data");
+            if(!userAppDataDir.exists() && !userAppDataDir.mkdir()) {
+                throw new Exception("Unable to create user app data directory: "+oneMFiveProxyDir.getAbsolutePath() + "/data");
+            } else {
+                config.setProperty("inkrypt.dcdn.dir.userAppData", userAppDataDir.getAbsolutePath());
+            }
+
+            userAppConfigDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/config");
+            if(!userAppConfigDir.exists() && !userAppConfigDir.mkdir()) {
+                throw new Exception("Unable to create user app config directory: "+oneMFiveProxyDir.getAbsolutePath() + "/config");
+            } else {
+                config.setProperty("inkrypt.dcdn.dir.userAppConfig", userAppConfigDir.getAbsolutePath());
+            }
+
+            userAppCacheDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/cache");
+            if(!userAppCacheDir.exists() && !userAppCacheDir.mkdir()) {
+                throw new Exception("Unable to create user app cache directory: "+oneMFiveProxyDir.getAbsolutePath() + "/cache");
+            } else {
+                config.setProperty("inkrypt.dcdn.dir.userAppCache", userAppCacheDir.getAbsolutePath());
+            }
+        } else {
+            oneMFiveProxyDir = SystemSettings.getSystemApplicationDir("1m5", "proxy", true);
+            if (oneMFiveProxyDir == null) {
+                throw new Exception("Unable to create system directory for 1M5 Proxy dapp.");
+            } else {
+                config.setProperty("1m5.proxy.dir.base", oneMFiveProxyDir.getAbsolutePath());
+            }
+            userAppDataDir = SystemSettings.getUserAppDataDir("1m5", "proxy", true);
+            config.setProperty("1m5.proxy.dir.userAppData", userAppDataDir.getAbsolutePath());
+
+            userAppConfigDir = SystemSettings.getUserAppConfigDir("1m5", "proxy", true);
+            config.setProperty("1m5.proxy.dir.userAppConfig", userAppConfigDir.getAbsolutePath());
+
+            userAppCacheDir = SystemSettings.getUserAppCacheDir("1m5", "proxy", true);
+            config.setProperty("1m5.proxy.dir.userAppCache", userAppCacheDir.getAbsolutePath());
+        }
+        LOG.info("1M5 Proxy Dapp Directories: " +
+                "\n\tBase: " + oneMFiveProxyDir.getAbsolutePath() +
+                "\n\tData: " + userAppDataDir.getAbsolutePath() +
+                "\n\tConfig: " + userAppConfigDir.getAbsolutePath() +
+                "\n\tCache: " + userAppCacheDir.getAbsolutePath());
 
         // Credentials
-        String credFileStr = oneMFiveDir + "/cred";
+        String credFileStr = oneMFiveProxyDirStr + "/cred";
         File credFile = new File(credFileStr);
         if(!credFile.exists())
             if(!credFile.createNewFile())
@@ -218,7 +277,7 @@ public class ProxyDaemon {
         config.setProperty("passphrase",passphrase);
 
         // Logging
-        config.setProperty("java.util.logging.config.file",oneMFiveDir+"/log/logging.properties");
+        config.setProperty("java.util.logging.config.file",oneMFiveProxyDirStr+"/log/logging.properties");
         loadLoggingProperties(config);
 
         return true;
