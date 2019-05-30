@@ -1,15 +1,16 @@
 package io.onemfive.proxy.packet;
 
+import io.onemfive.data.NetworkPeer;
 import io.onemfive.data.content.Content;
 
 /**
- * {@link ProxyPacket} for sending {@link Content}
+ * {@link P2PProxyPacket} for sending {@link Content}
  * to a {@link io.onemfive.data.NetworkPeer} using
  * a {@link io.onemfive.proxy.ProxyClient}
  *
  * @author objectorange
  */
-public class SendContentPacket extends ProxyPacket {
+public class SendContentPacket extends P2PProxyPacket {
 
     private Content content;
 
@@ -17,12 +18,18 @@ public class SendContentPacket extends ProxyPacket {
         this(null, false);
     }
 
-    public SendContentPacket(boolean hashCashIt) {
-        this(null, hashCashIt);
-    }
-
     public SendContentPacket(Content content, boolean hashCashIt) {
         super(hashCashIt);
+        this.content = content;
+    }
+
+    public SendContentPacket(NetworkPeer from, NetworkPeer to, Content content) {
+        super(from, to, false);
+        this.content = content;
+    }
+
+    public SendContentPacket(NetworkPeer from, NetworkPeer to, Content content, boolean hashCashIt) {
+        super(from, to, hashCashIt);
         this.content = content;
     }
 
