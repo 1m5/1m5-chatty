@@ -20,8 +20,6 @@ public abstract class ProxyPacket extends ServiceRequest {
     private static Logger LOG = Logger.getLogger(ProxyPacket.class.getName());
 
     protected Long id;
-    protected NetworkPeer fromPeer;
-    protected NetworkPeer toPeer;
     protected byte[] data;
     protected long timeSent = 0;
     protected long timeDelivered = 0;
@@ -61,22 +59,6 @@ public abstract class ProxyPacket extends ServiceRequest {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public NetworkPeer getFromPeer() {
-        return fromPeer;
-    }
-
-    public void setFromPeer(NetworkPeer fromPeer) {
-        this.fromPeer = fromPeer;
-    }
-
-    public NetworkPeer getToPeer() {
-        return toPeer;
-    }
-
-    public void setToPeer(NetworkPeer toPeer) {
-        this.toPeer = toPeer;
     }
 
     public byte[] getData() {
