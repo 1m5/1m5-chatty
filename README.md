@@ -72,4 +72,7 @@ Build project with your appropriate network set in maven profile:
     3. Open /home/[user]/1m5/proxy/.1m5/services/io.onemfive.sensors.SensorService/sensors/i2p/router.config and then open i2np.udp.port in firewalld for both udp and tcp (https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7)
     4. Start program (systemctl start 1m5-proxy)
 9. Verify 1M5 ready for requests after about 5 minutes in 1m5-proxy-log-0.txt
-10. Set this 1M5 proxy as your proxy for the browser you wish to use with it.
+10. Set this 1M5 proxy as your proxy for the browser you wish to use with it by setting the proxy address to 127.0.0.1 and the port to 2017.
+    - Linux Firefox: https://support.mozilla.org/en-US/kb/connection-settings-firefox
+    - Mac Safari: https://support.apple.com/guide/mac-help/enter-proxy-server-settings-on-mac-mchlp2591/mac
+    - Windows 10 Browsers: https://www.howto-connect.com/windows-10-customize-proxy-server-settings-in-browsers/
