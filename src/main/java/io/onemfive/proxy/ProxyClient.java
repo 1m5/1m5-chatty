@@ -26,6 +26,7 @@ import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
 import io.onemfive.sensors.SensorRequest;
 import io.onemfive.sensors.SensorsService;
+import io.onemfive.tor.client.TorClientSensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -195,10 +196,10 @@ public class ProxyClient implements LifeCycle {
         config.setProperty(SensorManager.class.getName(),SensorManagerGraph.class.getName());
 
         // Setup Sensors
+        // I2P
         String sensorsConfig = I2PSensor.class.getName()+","+Envelope.Sensitivity.HIGH.name()+",100";
-        if("true".equals(config.getProperty("onemfive.sensors.clearnet.server"))) {
-            sensorsConfig += ":"+ClearnetServerSensor.class.getName()+","+Envelope.Sensitivity.LOW.name()+",100";
-        }
+        // Tor
+        sensorsConfig += ":"+ TorClientSensor.class.getName()+","+Envelope.Sensitivity.MEDIUM.name()+",100";
         config.setProperty(Sensor.class.getName(), sensorsConfig);
 
         DLC.addEntity(services, e);
