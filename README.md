@@ -51,6 +51,7 @@ Build project with your appropriate network set in maven profile:
 
 ## Install
 **Must be admin/super user**
+
 **Must not have another instance of I2P running. Can check by running 'i2prouter status'. If running, shutdown with 'i2prouter stop'.**
 
 ### Linux Setup
