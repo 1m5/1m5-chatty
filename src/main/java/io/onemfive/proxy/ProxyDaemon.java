@@ -65,16 +65,6 @@ public class ProxyDaemon {
             System.exit(-1);
         }
 
-        //        String useConsole = config.getProperty("console");
-//        if("true".equals(useConsole)) {
-//            scanner = new Scanner(System.in);
-//            running = true;
-//            while(status != Status.Exiting) {
-//                printMenu();
-//                processCommand(scanner.nextLine());
-//            }
-//            scanner.close();
-//        } else {
         try {
             proxyDaemon.initialize();
             // launch ProxyClient in separate thread
