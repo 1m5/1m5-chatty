@@ -59,8 +59,8 @@ Build project with your appropriate network set in maven profile:
 
 #### User Install Directory Setup (tested)
 1. Create 1m5 folder with proxy folder in current user home, e.g. /home/[user]/1m5/proxy
-2. Download the 1m5-proxy-lib.zip and 1m5-proxy-0.6.1.jar from [releases](https://github.com/1m5/1m5-proxy/releases/tag/0.6.1-alpha).
-3. Unzip 1m5-proxy-lib.zip into /home/[user]/1m5/proxy/lib then move 1m5-proxy-0.6.1.jar into /home/[user]/1m5/proxy/lib
+2. Download the 1m5-proxy-lib.zip and 1m5-proxy-0.6.1-SNAPSHOT.jar from [releases](https://github.com/1m5/1m5-proxy/releases/tag/0.6.1-alpha).
+3. Unzip 1m5-proxy-lib.zip into /home/[user]/1m5/proxy/lib then move 1m5-proxy-0.6.1-SNAPSHOT.jar into /home/[user]/1m5/proxy/lib
 4. Download the appropriate 1m5-proxy.service from [releases](https://github.com/1m5/1m5-proxy/releases/tag/0.6.1-alpha)
     and save to /usr/lib/systemd/system (CentOS) folder or /lib/systemd/system (Debian) as 1m5-proxy.service
 5. sudo systemctl daemon-reload
@@ -71,4 +71,5 @@ Build project with your appropriate network set in maven profile:
     2. stop the program (sudo systemctl stop 1m5-proxy)
     3. Open /home/[user]/1m5/proxy/.1m5/services/io.onemfive.sensors.SensorService/sensors/i2p/router.config and then open i2np.udp.port in firewalld for both udp and tcp (https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7)
     4. Start program (systemctl start 1m5-proxy)
-8. Verify 1M5 ready for requests after about 5 minutes in 1m5-proxy-log-0.txt
+9. Verify 1M5 ready for requests after about 5 minutes in 1m5-proxy-log-0.txt
+10. Set this 1M5 proxy as your proxy for the browser you wish to use with it.
