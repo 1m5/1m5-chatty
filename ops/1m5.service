@@ -1,9 +1,0 @@
-[Unit]
-Description=Invisible Matrix Services (1M5)
-[Service]
-ExecStart=/usr/bin/java -Djava.util.logging.config.file=/lib/systemd/system/1m5/logs/logging.properties -jar /usr/lib/dcdn/1m5-proxy.jar "java.util.logging.config.file=/lib/systemd/system/1m5/logs/logging.properties"
-Type=simple
-User=1m5
-WorkingDirectory=/lib/systemd/system/1m5
-[Install]
-WantedBy=multi-user.target
