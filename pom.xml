@@ -37,47 +37,6 @@
 		<url>git@github.com/1m5/1m5-proxy</url>
 	</scm>
 
-	<profiles>
-		<profile>
-			<id>devnet</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
-				<log.level>INFO</log.level>
-			</properties>
-		</profile>
-		<profile>
-			<id>demonet</id>
-			<properties>
-				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
-				<log.level>INFO</log.level>
-			</properties>
-		</profile>
-		<profile>
-			<id>integrationnet</id>
-			<properties>
-				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
-				<log.level>INFO</log.level>
-			</properties>
-		</profile>
-		<profile>
-			<id>testnet</id>
-			<properties>
-				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
-				<log.level>WARNING</log.level>
-			</properties>
-		</profile>
-		<profile>
-			<id>mainnet</id>
-			<properties>
-				<onemfive.sensors.clearnet.server>true</onemfive.sensors.clearnet.server>
-				<log.level>SEVERE</log.level>
-			</properties>
-		</profile>
-	</profiles>
-
 	<dependencies>
 		<dependency>
 			<groupId>io.onemfive</groupId>
@@ -184,6 +143,38 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<!--<classpathPrefix>lib</classpathPrefix>-->
+							<mainClass>io.onemfive.proxy.ProxyDaemon</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
 			<!--<plugin>-->
 				<!--<artifactId>maven-assembly-plugin</artifactId>-->
 				<!--<executions>-->
@@ -205,22 +196,22 @@
 					<!--</descriptorRefs>-->
 				<!--</configuration>-->
 			<!--</plugin>-->
-			<plugin>
-				<groupId>net.sf.debian-maven</groupId>
-				<artifactId>debian-maven-plugin</artifactId>
-				<version>1.0.6</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>package</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
+<!--			<plugin>-->
+<!--				<groupId>net.sf.debian-maven</groupId>-->
+<!--				<artifactId>debian-maven-plugin</artifactId>-->
+<!--				<version>1.0.6</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<phase>package</phase>-->
+<!--						<goals>-->
+<!--							<goal>package</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--				<configuration>-->
 
-				</configuration>
-			</plugin>
+<!--				</configuration>-->
+<!--			</plugin>-->
 		</plugins>
 	</build>
 
