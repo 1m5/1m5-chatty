@@ -1,7 +1,7 @@
 [Unit]
 Description=Invisible Matrix Services (1M5) Proxy
 [Service]
-ExecStart=/usr/bin/java -Djava.util.logging.config.file=/home/[user]/1m5/proxy/logs/logging.properties -jar /home/[user]/1m5/proxy/lib/1m5-proxy.jar "java.util.logging.config.file=/home/[user]/1m5/proxy/logs/logging.properties"
+ExecStart=/usr/bin/java -Djava.util.logging.config.file=/home/[user]/1m5/proxy/logs/logging.properties -jar /home/[user]/1m5/proxy/lib/1m5-proxy-0.6.1-SNAPSHOT.jar "java.util.logging.config.file=/home/[user]/1m5/proxy/logs/logging.properties"
 Type=simple
 User=[user]
 WorkingDirectory=/home/[user]/1m5/proxy
