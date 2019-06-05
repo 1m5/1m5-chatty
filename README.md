@@ -58,9 +58,9 @@ Build project with your appropriate network set in maven profile:
 **Notes**: Tested on CentOS 7, Purism PureOS (Debian), Ubuntu (Debian), and Raspian (Raspberry Pi Debian).
 
 #### User Install Directory Setup (tested)
-1. Create 1m5 folder with proxy folder in current user home, e.g. /home/[user]/1m5/proxy
+1. Create 1m5/apps/proxy folder in current user home, e.g. /home/[user]/1m5/apps/proxy
 2. Download the 1m5-proxy-lib.zip and 1m5-proxy-0.6.1-SNAPSHOT.jar from [releases](https://github.com/1m5/1m5-proxy/releases/tag/0.6.1-alpha).
-3. Unzip 1m5-proxy-lib.zip into /home/[user]/1m5/proxy/lib then move 1m5-proxy-0.6.1-SNAPSHOT.jar into /home/[user]/1m5/proxy/lib
+3. Unzip 1m5-proxy-lib.zip into /home/[user]/1m5/apps/proxy/lib then move 1m5-proxy-0.6.1-SNAPSHOT.jar into /home/[user]/1m5/apps/proxy/lib
 4. Download the appropriate 1m5-proxy.service from [releases](https://github.com/1m5/1m5-proxy/releases/tag/0.6.1-alpha)
     and save to /usr/lib/systemd/system (CentOS) folder or /lib/systemd/system (Debian) as 1m5-proxy.service
 5. sudo systemctl daemon-reload
