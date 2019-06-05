@@ -197,7 +197,6 @@ public class ProxyDaemon {
                 config.put("1m5.dir.base", oneMFiveCoreDirStr);
             }
         }
-        LOG.info("1M5 Base Directory: "+oneMFiveCoreDirStr);
 
         String oneMFiveProxyDirStr = config.getProperty("1m5.proxy.dir.base");
         if(oneMFiveProxyDirStr!=null) {
@@ -205,21 +204,21 @@ public class ProxyDaemon {
             if(!oneMFiveProxyDir.exists() && !oneMFiveProxyDir.mkdir()) {
                 throw new Exception("Unable to create supplied 1m5.dir.base directory: "+oneMFiveProxyDirStr);
             }
-            userAppDataDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/data");
+            userAppDataDir = new File(oneMFiveProxyDir, "data");
             if(!userAppDataDir.exists() && !userAppDataDir.mkdir()) {
                 throw new Exception("Unable to create user app data directory: "+oneMFiveProxyDir.getAbsolutePath() + "/data");
             } else {
                 config.setProperty("inkrypt.dcdn.dir.userAppData", userAppDataDir.getAbsolutePath());
             }
 
-            userAppConfigDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/config");
+            userAppConfigDir = new File(oneMFiveProxyDir, "config");
             if(!userAppConfigDir.exists() && !userAppConfigDir.mkdir()) {
                 throw new Exception("Unable to create user app config directory: "+oneMFiveProxyDir.getAbsolutePath() + "/config");
             } else {
                 config.setProperty("inkrypt.dcdn.dir.userAppConfig", userAppConfigDir.getAbsolutePath());
             }
 
-            userAppCacheDir = new File(oneMFiveProxyDir.getAbsolutePath() + "/cache");
+            userAppCacheDir = new File(oneMFiveProxyDir, "cache");
             if(!userAppCacheDir.exists() && !userAppCacheDir.mkdir()) {
                 throw new Exception("Unable to create user app cache directory: "+oneMFiveProxyDir.getAbsolutePath() + "/cache");
             } else {
