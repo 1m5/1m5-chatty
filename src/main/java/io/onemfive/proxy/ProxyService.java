@@ -1,8 +1,7 @@
 package io.onemfive.proxy;
 
 import io.onemfive.clearnet.server.ClearnetServerSensor;
-import io.onemfive.core.LifeCycle;
-import io.onemfive.core.OneMFiveAppContext;
+import io.onemfive.core.*;
 import io.onemfive.core.admin.AdminService;
 import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
@@ -15,6 +14,8 @@ import io.onemfive.data.*;
 import io.onemfive.data.content.Content;
 import io.onemfive.data.content.Text;
 import io.onemfive.data.util.DLC;
+import io.onemfive.data.util.FileUtil;
+import io.onemfive.data.util.HashUtil;
 import io.onemfive.data.util.JSONParser;
 import io.onemfive.did.AuthenticateDIDRequest;
 import io.onemfive.did.DIDService;
@@ -28,6 +29,8 @@ import io.onemfive.sensors.SensorRequest;
 import io.onemfive.sensors.SensorsService;
 import io.onemfive.tor.client.TorClientSensor;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,18 +43,15 @@ import java.util.logging.Logger;
  * @since 0.6.1
  * @author objectorange
  */
-public class ProxyClient implements LifeCycle {
+public class ProxyService extends BaseService {
 
-    private Logger LOG = Logger.getLogger(ProxyClient.class.getName());
+    private Logger LOG = Logger.getLogger(ProxyService.class.getName());
 
     protected Properties config;
-    protected List<ProxyObserver> observers;
+    protected List<ProxyObserver> observers = new ArrayList<>();
 
-    ClientAppManager manager;
-    protected ClientAppManager.Status clientAppManagerStatus;
     protected Client client;
     protected NetworkPeer localPeer;
-    protected SensorManagerGraph graph;
 
     public void routeIn(Envelope envelope) {
         LOG.info("Route In from Notification Service...");
@@ -135,82 +135,57 @@ public class ProxyClient implements LifeCycle {
 
     @Override
     public boolean start(Properties properties) {
-        config = properties;
-        observers = new ArrayList<>();
-        // Getting ClientAppManager starts 1M5 Bus
-        OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
-        manager = oneMFiveAppContext.getClientAppManager();
-        manager.setShutdownOnLastUnregister(true);
-        client = manager.getClient(true);
-
-        ClientStatusListener clientStatusListener = new ClientStatusListener() {
-            @Override
-            public void clientStatusChanged(ClientAppManager.Status clientStatus) {
-                clientAppManagerStatus = clientStatus;
-                LOG.info("Network Status changed: "+clientStatus.name());
-                switch(clientAppManagerStatus) {
-                    case INITIALIZING: {
-                        LOG.info("Network initializing...");
-                        break;
-                    }
-                    case READY: {
-                        LOG.info("Network ready.");
-                        break;
-                    }
-                    case STOPPING: {
-                        LOG.info("Network stopping...");
-                        break;
-                    }
-                    case STOPPED: {
-                        LOG.info("Network stopped.");
-                        break;
-                    }
+        if(!super.start(properties)) {
+            return false;
+        }
+        LOG.info("Starting ProxyService...");
+        updateStatus(ServiceStatus.STARTING);
+        try {
+            config = Config.loadFromClasspath("1m5-proxy.config", properties, false);
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+        }
+        // Ensure Service Directory Path
+        if(config.getProperty("1m5.proxy.dir.base")==null) {
+            String serviceDirPath;
+            try {
+                serviceDirPath = getServiceDirectory().getCanonicalPath();
+                File sPath = new File(serviceDirPath);
+                if(!sPath.exists() && !sPath.mkdir()) {
+                    LOG.warning("Unable to create service path for 1M5 Proxy Service. Start failed.");
+                    return false;
                 }
+                config.put("1m5.proxy.dir.base", serviceDirPath);
+            } catch (IOException e) {
+                LOG.warning(e.getLocalizedMessage());
+                return false;
             }
-        };
-        client.registerClientStatusListener(clientStatusListener);
-        final Thread mainThread = Thread.currentThread();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                manager.unregister(client);
-                try {
-                    mainThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        }
+        // Credentials
+        String username = "Alice235";
+        String passphrase = null;
+        try {
+            String credFileStr = getServiceDirectory().getAbsolutePath() + "/cred";
+            File credFile = new File(credFileStr);
+            if (!credFile.exists())
+                if (!credFile.createNewFile())
+                    throw new Exception("Unable to create node credentials file at: " + credFileStr);
+
+            config.setProperty("username", "Alice235");
+            passphrase = FileUtil.readTextFile(credFileStr, 1, true);
+            if ("".equals(passphrase) ||
+                    (config.getProperty("1m5.node.local.rebuild") != null && "true".equals(config.getProperty("1m5.node.local.rebuild")))) {
+                passphrase = HashUtil.generateHash(String.valueOf(System.currentTimeMillis()), Hash.Algorithm.SHA1).getHash();
+                if (!FileUtil.writeFile(passphrase.getBytes(), credFileStr))
+                    throw new Exception("Unable to write local node Alice235 passphrase to file.");
+                else
+                    LOG.info("New passphrase saved: " + passphrase);
             }
-        });
-
-        // wait a second to let the bus and internal services start
-        waitABit(1000);
-
-        // Initialize and configure 1M5
-        Envelope e = Envelope.documentFactory();
-
-        // Setup Services
-        List<Class> services = new ArrayList<>();
-        services.add(DIDService.class);
-        services.add(SensorsService.class);
-
-        // Setup SensorManagerNeo4j
-        config.setProperty(SensorManager.class.getName(),SensorManagerGraph.class.getName());
-
-        // Setup Sensors
-        // I2P
-        String sensorsConfig = I2PSensor.class.getName()+","+Envelope.Sensitivity.HIGH.name()+",100";
-        // Tor
-        sensorsConfig += ":"+ TorClientSensor.class.getName()+","+Envelope.Sensitivity.MEDIUM.name()+",100";
-        config.setProperty(Sensor.class.getName(), sensorsConfig);
-
-        DLC.addEntity(services, e);
-        DLC.addData(Properties.class, config, e);
-
-        // Register Services
-        DLC.addRoute(AdminService.class, AdminService.OPERATION_REGISTER_SERVICES,e);
-        client.request(e);
-
-        // Wait a bit for Sensors and DID to start
-        waitABit(1000);
+            config.setProperty("1m5.node.local.passphrase", passphrase);
+        } catch (Exception e) {
+            LOG.warning(e.getLocalizedMessage());
+            return false;
+        }
 
         Subscription subscription = new Subscription() {
             @Override
@@ -236,8 +211,6 @@ public class ProxyClient implements LifeCycle {
         Envelope e4 = Envelope.documentFactory();
 
         // 2. Authenticate DID
-        String username = config.getProperty("username");
-        String passphrase = config.getProperty("passphrase");
         DID did = new DID();
         did.setUsername(username);
         did.setPassphrase(passphrase);
@@ -257,6 +230,10 @@ public class ProxyClient implements LifeCycle {
         DLC.addData(AuthNRequest.class, ar, e4);
         DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_AUTHN, e4);
         client.request(e4);
+
+        updateStatus(ServiceStatus.RUNNING);
+        LOG.info("1M5 Proxy Started.");
+
         return true;
     }
 

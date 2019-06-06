@@ -1,16 +1,26 @@
 package io.onemfive.proxy;
 
+import io.onemfive.clearnet.server.ClearnetServerSensor;
 import io.onemfive.core.Config;
+import io.onemfive.core.OneMFiveAppContext;
+import io.onemfive.core.admin.AdminService;
+import io.onemfive.core.client.Client;
 import io.onemfive.core.client.ClientAppManager;
-import io.onemfive.core.util.AppThread;
+import io.onemfive.core.client.ClientStatusListener;
 import io.onemfive.core.util.SystemSettings;
-import io.onemfive.data.Hash;
+import io.onemfive.data.*;
+import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.FileUtil;
-import io.onemfive.data.util.HashUtil;
+import io.onemfive.did.DIDService;
+import io.onemfive.i2p.I2PSensor;
+import io.onemfive.sensormanager.graph.SensorManagerGraph;
+import io.onemfive.sensors.Sensor;
+import io.onemfive.sensors.SensorManager;
+import io.onemfive.sensors.SensorsService;
+import io.onemfive.tor.client.TorClientSensor;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.LogManager;
@@ -29,11 +39,11 @@ public class ProxyDaemon {
     private enum Status {Shutdown, Initializing, Initialized, Starting, Running, ShuttingDown, Errored, Exiting}
 
     protected static Properties config;
-    protected static ProxyDaemon proxyDaemon;
-    protected static ProxyClient proxyClient;
+    private static final ProxyDaemon instance = new ProxyDaemon();
+    private static ClientAppManager manager;
+    private static ClientAppManager.Status clientAppManagerStatus;
+    private static Client client;
 
-    protected boolean running = false;
-    protected Scanner scanner;
     protected Status status = Status.Shutdown;
 
     public static File oneMFiveCoreDir;
@@ -43,155 +53,49 @@ public class ProxyDaemon {
     public static File userAppCacheDir;
 
     public static void main(String[] args) {
-        System.out.println("Welcome to 1M5 Proxy Daemon. Starting 1M5 Service...");
-        proxyDaemon = new ProxyDaemon();
-        proxyDaemon.launch(args, "1m5-proxy.config");
-        System.out.println("1M5 Proxy Daemon exiting...");
-        System.exit(0);
-    }
-
-    public void launch(String[] args, String configFile) {
+        System.out.println("Welcome to 1M5 Proxy Daemon. Starting 1M5 Proxy Service...");
         Properties p = new Properties();
         String[] parts;
         for(String arg : args) {
             parts = arg.split("=");
             p.setProperty(parts[0],parts[1]);
         }
-
+        // Logging
+        loadLoggingProperties(p);
+        // Config
         try {
-            config = Config.loadFromClasspath(configFile, p, false);
+            config = Config.loadFromClasspath("1m5-proxy.config", p, false);
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
             System.exit(-1);
         }
-
         try {
-            proxyDaemon.initialize();
-            // launch ProxyClient in separate thread
-            proxyDaemon.startService();
+            instance.launch();
             // Check periodically to see if 1M5 stopped
-            while (proxyClient.clientAppManagerStatus != ClientAppManager.Status.STOPPED) {
-                proxyDaemon.waitABit(2 * 1000);
+            while (instance.clientAppManagerStatus != ClientAppManager.Status.STOPPED) {
+                instance.waitABit(2 * 1000);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.severe(e.getLocalizedMessage());
             System.exit(-1);
         }
-//        }
-
+        System.out.println("1M5 Proxy Daemon exiting...");
+        System.exit(0);
     }
 
-    private void printMenu() {
-        System.out.println("The following commands are available: ");
-        switch(status) {
-            case Shutdown: {
-                System.out.println("\tin - Initializing the 1M5 Proxy Daemon.");
-                System.out.println("\tq  - Quit.");
-                break;
-            }
-            case Initialized: {
-                System.out.println("\tst - Start the 1M5 Proxy Daemon.");
-                System.out.println("\tc  - Print Config.");
-                System.out.println("\tq  - Quit.");
-                break;
-            }
-            case Running: {
-                System.out.println("\tsd - Shutdown the 1M5 Proxy Daemon.");
-                System.out.println("\tc  - Print Config.");
-            }
-        }
-    }
+    public void launch() throws Exception {
 
-    private void processCommand(String command) {
-        switch (command) {
-            case "c" : {
-                if(status == Status.Initialized || status == Status.Running) {
-                    printConfig();
-                } else {
-                    System.out.println("Command not available.");
-                    printMenu();
-                    return;
-                }
-                break;
-            }
-            case "q" : {
-                System.out.println("Exiting 1M5 Proxy Daemon....");
-                status = Status.Exiting;
-                System.exit(0);
-                break;
-            }
-            case "in": {
-                if(status != Status.Shutdown) {
-                    System.out.println("Command not available.");
-                    printMenu();
-                    return;
-                }
-                System.out.println("Initializing 1M5 Proxy Daemon....");
-                status = Status.Initializing;
-                try {
-                    initialize();
-                    status = Status.Initialized;
-                    System.out.println("1M5 Proxy Daemon Initialized.");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("1M5 Proxy Daemon failed to Initialize.");
-                }
-                break;
-            }
-            case "st": {
-                if(status != Status.Initialized) {
-                    System.out.println("Command not available.");
-                    printMenu();
-                    return;
-                }
-                System.out.println("Starting 1M5 Proxy Daemon....");
-                status = Status.Starting;
-                String username = null;
-                while(username==null) {
-                    System.out.println("Please enter a username");
-                    username = scanner.nextLine();
-                }
-                String passphrase = null;
-                while(passphrase == null) {
-                    System.out.println("Please enter a passphrase");
-                    passphrase = scanner.nextLine();
-                }
-                startService(username, passphrase);
-                status = Status.Running;
-                System.out.println("1M5 Proxy Daemon Running.");
-                break;
-            }
-            case "sd": {
-                if(status != Status.Running) {
-                    System.out.println("Command not available.");
-                    printMenu();
-                    return;
-                }
-                System.out.println("Shutting Down 1M5 Proxy Daemon....");
-                status = Status.ShuttingDown;
-                stopService();
-                status = Status.Shutdown;
-                System.out.println("1M5 Proxy Daemon Shutdown.");
-                break;
-            }
-        }
-    }
-
-    private boolean initialize() throws Exception {
         // Directories
         String oneMFiveCoreDirStr = config.getProperty("1m5.dir.base");
         if(oneMFiveCoreDirStr!=null) {
             oneMFiveCoreDir = new File(oneMFiveCoreDirStr);
             if(!oneMFiveCoreDir.exists() && !oneMFiveCoreDir.mkdir()) {
-                LOG.warning("Unable to create 1m5.dir.base: "+oneMFiveCoreDirStr);
-                return false;
+                throw new Exception("Unable to create 1m5.dir.base: "+oneMFiveCoreDirStr);
             }
         }  else {
             oneMFiveCoreDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
             if (oneMFiveCoreDir == null) {
-                LOG.severe("Unable to create base system directory for 1M5 core.");
-                return false;
+                throw new Exception("Unable to create base system directory for 1M5 core.");
             } else {
                 oneMFiveCoreDirStr = oneMFiveCoreDir.getAbsolutePath();
                 config.put("1m5.dir.base", oneMFiveCoreDirStr);
@@ -246,65 +150,81 @@ public class ProxyDaemon {
                 "\n\tConfig: " + userAppConfigDir.getAbsolutePath() +
                 "\n\tCache: " + userAppCacheDir.getAbsolutePath());
 
-        // Credentials
-        String credFileStr = oneMFiveProxyDirStr + "/cred";
-        File credFile = new File(credFileStr);
-        if(!credFile.exists())
-            if(!credFile.createNewFile())
-                throw new Exception("Unable to create node credentials file at: "+credFileStr);
+        // Getting ClientAppManager starts 1M5 Bus
+        OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
+        manager = oneMFiveAppContext.getClientAppManager();
+        manager.setShutdownOnLastUnregister(true);
+        client = manager.getClient(true);
 
-        config.setProperty("username","Alice235");
-        String passphrase = FileUtil.readTextFile(credFileStr,1, true);
-        if("".equals(passphrase) ||
-                (config.getProperty("1m5.user.rebuild")!=null && "true".equals(config.getProperty("1m5.user.rebuild")))) {
-            passphrase = HashUtil.generateHash(String.valueOf(System.currentTimeMillis()), Hash.Algorithm.SHA1).getHash();
-            if(!FileUtil.writeFile(passphrase.getBytes(), credFileStr))
-                return false;
-            else
-                LOG.info("New passphrase saved: "+passphrase);
-        }
-        config.setProperty("passphrase",passphrase);
-
-        // Logging
-        config.setProperty("java.util.logging.config.file",oneMFiveProxyDirStr+"/log/logging.properties");
-        loadLoggingProperties(config);
-
-        return true;
-    }
-
-    private void startService() {
-        proxyClient = new ProxyClient();
-        ProxyHandler.setProxyClient(proxyClient);
-        new AppThread(new Runnable() {
+        ClientStatusListener clientStatusListener = new ClientStatusListener() {
             @Override
-            public void run() {
-                proxyClient.start(config);
+            public void clientStatusChanged(ClientAppManager.Status clientStatus) {
+                clientAppManagerStatus = clientStatus;
+                LOG.info("Network Status changed: "+clientStatus.name());
+                switch(clientAppManagerStatus) {
+                    case INITIALIZING: {
+                        LOG.info("Network initializing...");
+                        break;
+                    }
+                    case READY: {
+                        LOG.info("Network ready.");
+                        break;
+                    }
+                    case STOPPING: {
+                        LOG.info("Network stopping...");
+                        break;
+                    }
+                    case STOPPED: {
+                        LOG.info("Network stopped.");
+                        break;
+                    }
+                }
             }
-        }).start();
-    }
+        };
+        client.registerClientStatusListener(clientStatusListener);
+        final Thread mainThread = Thread.currentThread();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                manager.unregister(client);
+                try {
+                    mainThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-    private void startService(String nodeUsername, String nodePassphrase) {
-        // Start Proxy Client
-        config.setProperty("username", nodeUsername);
-        config.setProperty("passphrase", nodePassphrase);
+        // wait a second to let the bus and internal services start
+        waitABit(1000);
 
-        startService();
-    }
+        // Initialize and configure 1M5
+        Envelope e = Envelope.documentFactory();
 
-    private static void stopService() {
-        proxyClient.gracefulShutdown();
-    }
+        // Setup Services
+        List<Class> services = new ArrayList<>();
+        services.add(ProxyService.class);
+        services.add(DIDService.class);
+        services.add(SensorsService.class);
 
-    private static void printStatus() {
+        // Setup SensorManagerNeo4j
+        config.setProperty(SensorManager.class.getName(), SensorManagerGraph.class.getName());
 
-    }
+        // Setup Sensors
+        // I2P
+        String sensorsConfig = I2PSensor.class.getName()+","+Envelope.Sensitivity.HIGH.name()+",100";
+        // Tor
+        sensorsConfig += ":"+ TorClientSensor.class.getName()+","+Envelope.Sensitivity.MEDIUM.name()+",100";
+        // Localhost HTTP
+        sensorsConfig += ":"+ ClearnetServerSensor.class.getName()+","+Envelope.Sensitivity.NONE.name()+",100";
+        config.setProperty(Sensor.class.getName(), sensorsConfig);
 
-    private static void printConfig() {
-        System.out.println("1M5 Proxy Configuration:");
-        Set<String> names = config.stringPropertyNames();
-        for(String n : names) {
-            System.out.println("\t"+n+"  : "+config.getProperty(n));
-        }
+        DLC.addEntity(services, e);
+        DLC.addData(Properties.class, config, e);
+
+        // Register Services
+        DLC.addRoute(AdminService.class, AdminService.OPERATION_REGISTER_SERVICES,e);
+        client.request(e);
+
     }
 
     protected static boolean loadLoggingProperties(Properties p) {

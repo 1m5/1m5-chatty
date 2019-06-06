@@ -2,11 +2,12 @@ package io.onemfive.proxy.packet;
 
 import io.onemfive.data.NetworkPeer;
 import io.onemfive.data.content.Content;
+import io.onemfive.proxy.ProxyService;
 
 /**
  * {@link P2PProxyPacket} for sending {@link Content}
  * to a {@link io.onemfive.data.NetworkPeer} using
- * a {@link io.onemfive.proxy.ProxyClient}
+ * a {@link ProxyService}
  *
  * @author objectorange
  */

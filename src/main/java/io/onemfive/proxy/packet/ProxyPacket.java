@@ -2,14 +2,14 @@ package io.onemfive.proxy.packet;
 
 import io.onemfive.core.ServiceRequest;
 import io.onemfive.core.util.HashCash;
-import io.onemfive.data.NetworkPeer;
+import io.onemfive.proxy.ProxyService;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.logging.Logger;
 
 /**
- * Base packet for all communications between {@link io.onemfive.proxy.ProxyClient}
+ * Base packet for all communications between {@link ProxyService}
  * (producer) and {@link io.onemfive.proxy.ProxyHandler} (consumer).
  *
  * @since 0.6.1

@@ -1,13 +1,14 @@
 package io.onemfive.proxy.packet;
 
 import io.onemfive.data.content.Content;
+import io.onemfive.proxy.ProxyService;
 
 import java.net.URL;
 
 /**
  * {@link ProxyPacket} for requesting {@link Content}
  * from a {@link java.net.URL} using
- * a {@link io.onemfive.proxy.ProxyClient}
+ * a {@link ProxyService}
  *
  * @author objectorange
  */
