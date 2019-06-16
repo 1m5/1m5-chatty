@@ -5,14 +5,13 @@
 
 	<groupId>io.onemfive</groupId>
 	<artifactId>proxy</artifactId>
-	<version>0.6.1-SNAPSHOT</version>
+	<version>0.6.1</version>
 
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<onemfive.version>0.6.1-SNAPSHOT</onemfive.version>
 	</properties>
 
 	<name>1m5-proxy</name>
@@ -41,37 +40,37 @@
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>core</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>did</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>sensors</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>sensormanager-graph</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>i2p</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>tor-client</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>clearnet-server</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<!-- Test -->
 		<dependency>
