@@ -2,15 +2,17 @@ package io.onemfive.proxy.packet;
 
 import io.onemfive.core.ServiceRequest;
 import io.onemfive.core.util.HashCash;
+import io.onemfive.proxy.ProxyService;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
 /**
- * TODO: Add Description
+ * Base packet for all communications between {@link ProxyService}
+ * (producer) and {@link io.onemfive.proxy.ProxyHandler} (consumer).
  *
+ * @since 0.6.1
  * @author objectorange
  */
 public abstract class ProxyPacket extends ServiceRequest {
@@ -18,9 +20,7 @@ public abstract class ProxyPacket extends ServiceRequest {
     private static Logger LOG = Logger.getLogger(ProxyPacket.class.getName());
 
     protected Long id;
-    protected Map<String,Object> fromPeer;
-    protected Map<String,Object> toPeer;
-    protected String data;
+    protected byte[] data;
     protected long timeSent = 0;
     protected long timeDelivered = 0;
     protected long timeAcknowledged = 0;
@@ -41,11 +41,11 @@ public abstract class ProxyPacket extends ServiceRequest {
     public boolean mintHashCash() {
         try {
             hashCash = HashCash.mintCash(id + "", 1);
-            return true;
         } catch (NoSuchAlgorithmException e) {
             LOG.warning(e.getLocalizedMessage());
             return false;
         }
+        return true;
     }
 
     public boolean verifyHashCash(HashCash hashCash) {
@@ -61,27 +61,11 @@ public abstract class ProxyPacket extends ServiceRequest {
         this.id = id;
     }
 
-    public Map<String, Object> getFromPeer() {
-        return fromPeer;
-    }
-
-    public void setFromPeer(Map<String, Object> fromPeer) {
-        this.fromPeer = fromPeer;
-    }
-
-    public Map<String, Object> getToPeer() {
-        return toPeer;
-    }
-
-    public void setToPeer(Map<String, Object> toPeer) {
-        this.toPeer = toPeer;
-    }
-
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 

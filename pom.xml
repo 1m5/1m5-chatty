@@ -5,14 +5,13 @@
 
 	<groupId>io.onemfive</groupId>
 	<artifactId>proxy</artifactId>
-	<version>0.6.1-SNAPSHOT</version>
+	<version>0.6.1</version>
 
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<onemfive.version>0.6.1-SNAPSHOT</onemfive.version>
 	</properties>
 
 	<name>1m5-proxy</name>
@@ -28,7 +27,7 @@
 	<developers>
 		<developer>
 			<name>objectorange</name>
-			<email>objectorange@1m5.io</email>
+			<email>objectorange@1m5.i2p</email>
 		</developer>
 	</developers>
 	<scm>
@@ -37,72 +36,41 @@
 		<url>git@github.com/1m5/1m5-proxy</url>
 	</scm>
 
-	<profiles>
-		<profile>
-			<id>devnet</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				
-			</properties>
-		</profile>
-		<profile>
-			<id>demonet</id>
-			<properties>
-			
-			</properties>
-		</profile>
-		<profile>
-			<id>integrationnet</id>
-			<properties>
-			
-			</properties>
-		</profile>
-		<profile>
-			<id>testnet</id>
-			<properties>
-			
-			</properties>
-		</profile>
-		<profile>
-			<id>mainnet</id>
-			<properties>
-			
-			</properties>
-		</profile>
-	</profiles>
-
 	<dependencies>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>core</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>did</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>sensors</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
-			<artifactId>sensormanager-neo4j</artifactId>
-			<version>${onemfive.version}</version>
+			<artifactId>sensormanager-graph</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>i2p</artifactId>
-			<version>0.6.0</version>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.onemfive</groupId>
+			<artifactId>tor-client</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>clearnet-server</artifactId>
-			<version>${onemfive.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<!-- Test -->
 		<dependency>
@@ -126,6 +94,11 @@
 					<include>**/*.properties</include>
 					<include>**/*.config</include>
 				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/web</directory>
+				<filtering>false</filtering>
+				<targetPath>io/onemfive/proxy/ui</targetPath>
 			</resource>
 		</resources>
 		<pluginManagement>
@@ -169,6 +142,38 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<!--<classpathPrefix>lib</classpathPrefix>-->
+							<mainClass>io.onemfive.proxy.ProxyDaemon</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
 			<!--<plugin>-->
 				<!--<artifactId>maven-assembly-plugin</artifactId>-->
 				<!--<executions>-->
@@ -190,22 +195,22 @@
 					<!--</descriptorRefs>-->
 				<!--</configuration>-->
 			<!--</plugin>-->
-			<plugin>
-				<groupId>net.sf.debian-maven</groupId>
-				<artifactId>debian-maven-plugin</artifactId>
-				<version>1.0.6</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>package</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
+<!--			<plugin>-->
+<!--				<groupId>net.sf.debian-maven</groupId>-->
+<!--				<artifactId>debian-maven-plugin</artifactId>-->
+<!--				<version>1.0.6</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<phase>package</phase>-->
+<!--						<goals>-->
+<!--							<goal>package</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--				<configuration>-->
 
-				</configuration>
-			</plugin>
+<!--				</configuration>-->
+<!--			</plugin>-->
 		</plugins>
 	</build>
 
