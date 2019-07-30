@@ -22,7 +22,6 @@ import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
 import io.onemfive.proxy.packet.ProxyPacket;
 import io.onemfive.proxy.packet.SendContentPacket;
-import io.onemfive.sensormanager.graph.SensorManagerGraph;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
 import io.onemfive.sensors.SensorRequest;

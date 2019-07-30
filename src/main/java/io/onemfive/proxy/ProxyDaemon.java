@@ -13,9 +13,9 @@ import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.FileUtil;
 import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
-import io.onemfive.sensormanager.graph.SensorManagerGraph;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
+import io.onemfive.sensors.SensorManagerUncensored;
 import io.onemfive.sensors.SensorsService;
 import io.onemfive.tor.client.TorClientSensor;
 
@@ -206,8 +206,8 @@ public class ProxyDaemon {
         services.add(DIDService.class);
         services.add(SensorsService.class);
 
-        // Setup SensorManagerNeo4j
-        config.setProperty(SensorManager.class.getName(), SensorManagerGraph.class.getName());
+        // Setup SensorManagerNeo4j - SensorManagerUncensored is default
+//        config.setProperty(SensorManager.class.getName(), SensorManagerUncensored.class.getName());
 
         // Setup Sensors
         // I2P
