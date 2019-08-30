@@ -28,6 +28,7 @@ public class ProxyHandler extends EnvelopeProxyDataHandler {
      */
     @Override
     protected void route(Envelope e) {
+        LOG.info("Received Envelope in Proxy Handler...");
         // Change flag to Medium so Tor Sensor will pick up
         e.setSensitivity(Envelope.Sensitivity.MEDIUM);
         sensor.send(e);
