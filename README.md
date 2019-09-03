@@ -37,11 +37,10 @@ For each repository below,
 3. 1m5-did
 4. 1m5-sensors
 5. 1m5-neo4j
-6. 1m5-sensormanager-neo4j
-7. 1m5-i2p
-8. 1m5-tor-client
-9. 1m5-clearnet-server
-10. 1m5-proxy
+6. 1m5-i2p
+7. 1m5-tor-client
+8. 1m5-clearnet-server
+9. 1m5-proxy
 
 ### Maven Profiles
 Build project with your appropriate network set in maven profile:
