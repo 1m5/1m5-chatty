@@ -37,7 +37,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * Encapsulates all client interactions for {@link ProxyDaemon}
+ * Handles all peer proxy requests.
  *
  * @since 0.6.1
  * @author objectorange
