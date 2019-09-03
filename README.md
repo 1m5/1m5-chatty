@@ -4,6 +4,8 @@ Starts the 1M5 daemon as a proxy.
     - Linux: https://openjdk.java.net/install/
     - Mac: https://www.youtube.com/watch?v=y6szNJ4rMZ0
     - Windows: https://www.youtube.com/watch?v=74pE3kLerAU&vl=en
+- Only Firefox Tested
+    - In about:config, set network.captive-portal-service.enabled to false
 
 ## Releases
 When downloading releases, please ensure you're downloading the correct 1m5-proxy.jar from the network you wish to connect to:
