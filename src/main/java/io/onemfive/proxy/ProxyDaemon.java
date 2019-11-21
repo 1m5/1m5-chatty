@@ -87,7 +87,7 @@ public class ProxyDaemon {
 
         // Getting ClientAppManager starts 1M5 Bus
         OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
-        manager = oneMFiveAppContext.getClientAppManager();
+        manager = oneMFiveAppContext.getClientAppManager(config);
         manager.setShutdownOnLastUnregister(true);
         client = manager.getClient(true);
 
