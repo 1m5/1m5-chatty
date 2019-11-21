@@ -22,7 +22,6 @@ import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
 import io.onemfive.proxy.packet.ProxyPacket;
 import io.onemfive.proxy.packet.SendContentPacket;
-import io.onemfive.sensormanager.graph.SensorManagerGraph;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
 import io.onemfive.sensors.SensorRequest;
@@ -38,7 +37,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * Encapsulates all client interactions for {@link ProxyDaemon}
+ * Handles all peer proxy requests.
  *
  * @since 0.6.1
  * @author objectorange
@@ -199,14 +198,14 @@ public class ProxyService extends BaseService {
         Envelope e2 = Envelope.documentFactory();
         DLC.addData(SubscriptionRequest.class, r, e2);
         DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE, e2);
-        client.request(e2);
+        producer.send(e2);
 
         // Subscribe to DID status notifications
         SubscriptionRequest r2 = new SubscriptionRequest(EventMessage.Type.STATUS_DID, subscription);
         Envelope e3 = Envelope.documentFactory();
         DLC.addData(SubscriptionRequest.class, r2, e3);
         DLC.addRoute(NotificationService.class, NotificationService.OPERATION_SUBSCRIBE, e3);
-        client.request(e3);
+        producer.send(e3);
 
         Envelope e4 = Envelope.documentFactory();
 
@@ -229,7 +228,7 @@ public class ProxyService extends BaseService {
         ar.autoGenerate = true;
         DLC.addData(AuthNRequest.class, ar, e4);
         DLC.addRoute(KeyRingService.class, KeyRingService.OPERATION_AUTHN, e4);
-        client.request(e4);
+        producer.send(e4);
 
         updateStatus(ServiceStatus.RUNNING);
         LOG.info("1M5 Proxy Started.");

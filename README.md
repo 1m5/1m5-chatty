@@ -4,6 +4,8 @@ Starts the 1M5 daemon as a proxy.
     - Linux: https://openjdk.java.net/install/
     - Mac: https://www.youtube.com/watch?v=y6szNJ4rMZ0
     - Windows: https://www.youtube.com/watch?v=74pE3kLerAU&vl=en
+- Only Firefox Tested
+    - In about:config, set network.captive-portal-service.enabled to false
 
 ## Releases
 When downloading releases, please ensure you're downloading the correct 1m5-proxy.jar from the network you wish to connect to:
@@ -35,11 +37,10 @@ For each repository below,
 3. 1m5-did
 4. 1m5-sensors
 5. 1m5-neo4j
-6. 1m5-sensormanager-neo4j
-7. 1m5-i2p
-8. 1m5-tor-client
-9. 1m5-clearnet-server
-10. 1m5-proxy
+6. 1m5-i2p
+7. 1m5-tor-client
+8. 1m5-clearnet-server
+9. 1m5-proxy
 
 ### Maven Profiles
 Build project with your appropriate network set in maven profile:

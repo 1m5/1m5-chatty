@@ -5,7 +5,7 @@
 
 	<groupId>io.onemfive</groupId>
 	<artifactId>proxy</artifactId>
-	<version>0.6.1</version>
+	<version>0.6.2</version>
 
 	<packaging>jar</packaging>
 
@@ -50,11 +50,6 @@
 		<dependency>
 			<groupId>io.onemfive</groupId>
 			<artifactId>sensors</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.onemfive</groupId>
-			<artifactId>sensormanager-graph</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

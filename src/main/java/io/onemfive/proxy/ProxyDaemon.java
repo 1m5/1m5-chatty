@@ -13,9 +13,9 @@ import io.onemfive.data.util.DLC;
 import io.onemfive.data.util.FileUtil;
 import io.onemfive.did.DIDService;
 import io.onemfive.i2p.I2PSensor;
-import io.onemfive.sensormanager.graph.SensorManagerGraph;
 import io.onemfive.sensors.Sensor;
 import io.onemfive.sensors.SensorManager;
+import io.onemfive.sensors.SensorManagerUncensored;
 import io.onemfive.sensors.SensorsService;
 import io.onemfive.tor.client.TorClientSensor;
 
@@ -85,74 +85,9 @@ public class ProxyDaemon {
 
     public void launch() throws Exception {
 
-        // Directories
-        String oneMFiveCoreDirStr = config.getProperty("1m5.dir.base");
-        if(oneMFiveCoreDirStr!=null) {
-            oneMFiveCoreDir = new File(oneMFiveCoreDirStr);
-            if(!oneMFiveCoreDir.exists() && !oneMFiveCoreDir.mkdir()) {
-                throw new Exception("Unable to create 1m5.dir.base: "+oneMFiveCoreDirStr);
-            }
-        }  else {
-            oneMFiveCoreDir = SystemSettings.getSystemApplicationDir("1m5", "core", true);
-            if (oneMFiveCoreDir == null) {
-                throw new Exception("Unable to create base system directory for 1M5 core.");
-            } else {
-                oneMFiveCoreDirStr = oneMFiveCoreDir.getAbsolutePath();
-                config.put("1m5.dir.base", oneMFiveCoreDirStr);
-            }
-        }
-
-        String oneMFiveProxyDirStr = config.getProperty("1m5.proxy.dir.base");
-        if(oneMFiveProxyDirStr!=null) {
-            oneMFiveProxyDir = new File(oneMFiveProxyDirStr);
-            if(!oneMFiveProxyDir.exists() && !oneMFiveProxyDir.mkdir()) {
-                throw new Exception("Unable to create supplied 1m5.dir.base directory: "+oneMFiveProxyDirStr);
-            }
-            userAppDataDir = new File(oneMFiveProxyDir, "data");
-            if(!userAppDataDir.exists() && !userAppDataDir.mkdir()) {
-                throw new Exception("Unable to create user app data directory: "+oneMFiveProxyDir.getAbsolutePath() + "/data");
-            } else {
-                config.setProperty("inkrypt.dcdn.dir.userAppData", userAppDataDir.getAbsolutePath());
-            }
-
-            userAppConfigDir = new File(oneMFiveProxyDir, "config");
-            if(!userAppConfigDir.exists() && !userAppConfigDir.mkdir()) {
-                throw new Exception("Unable to create user app config directory: "+oneMFiveProxyDir.getAbsolutePath() + "/config");
-            } else {
-                config.setProperty("inkrypt.dcdn.dir.userAppConfig", userAppConfigDir.getAbsolutePath());
-            }
-
-            userAppCacheDir = new File(oneMFiveProxyDir, "cache");
-            if(!userAppCacheDir.exists() && !userAppCacheDir.mkdir()) {
-                throw new Exception("Unable to create user app cache directory: "+oneMFiveProxyDir.getAbsolutePath() + "/cache");
-            } else {
-                config.setProperty("inkrypt.dcdn.dir.userAppCache", userAppCacheDir.getAbsolutePath());
-            }
-        } else {
-            oneMFiveProxyDir = SystemSettings.getSystemApplicationDir("1m5", "proxy", true);
-            if (oneMFiveProxyDir == null) {
-                throw new Exception("Unable to create system directory for 1M5 Proxy dapp.");
-            } else {
-                config.setProperty("1m5.proxy.dir.base", oneMFiveProxyDir.getAbsolutePath());
-            }
-            userAppDataDir = SystemSettings.getUserAppDataDir("1m5", "proxy", true);
-            config.setProperty("1m5.proxy.dir.userAppData", userAppDataDir.getAbsolutePath());
-
-            userAppConfigDir = SystemSettings.getUserAppConfigDir("1m5", "proxy", true);
-            config.setProperty("1m5.proxy.dir.userAppConfig", userAppConfigDir.getAbsolutePath());
-
-            userAppCacheDir = SystemSettings.getUserAppCacheDir("1m5", "proxy", true);
-            config.setProperty("1m5.proxy.dir.userAppCache", userAppCacheDir.getAbsolutePath());
-        }
-        LOG.info("1M5 Proxy Dapp Directories: " +
-                "\n\tBase: " + oneMFiveProxyDir.getAbsolutePath() +
-                "\n\tData: " + userAppDataDir.getAbsolutePath() +
-                "\n\tConfig: " + userAppConfigDir.getAbsolutePath() +
-                "\n\tCache: " + userAppCacheDir.getAbsolutePath());
-
         // Getting ClientAppManager starts 1M5 Bus
         OneMFiveAppContext oneMFiveAppContext = OneMFiveAppContext.getInstance(config);
-        manager = oneMFiveAppContext.getClientAppManager();
+        manager = oneMFiveAppContext.getClientAppManager(config);
         manager.setShutdownOnLastUnregister(true);
         client = manager.getClient(true);
 
@@ -206,8 +141,8 @@ public class ProxyDaemon {
         services.add(DIDService.class);
         services.add(SensorsService.class);
 
-        // Setup SensorManagerNeo4j
-        config.setProperty(SensorManager.class.getName(), SensorManagerGraph.class.getName());
+        // Setup SensorManagerNeo4j - SensorManagerUncensored is default
+        config.setProperty(SensorManager.class.getName(), SensorManagerUncensored.class.getName());
 
         // Setup Sensors
         // I2P

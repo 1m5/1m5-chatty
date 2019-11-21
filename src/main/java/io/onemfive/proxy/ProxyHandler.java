@@ -2,6 +2,9 @@ package io.onemfive.proxy;
 
 import io.onemfive.clearnet.server.EnvelopeProxyDataHandler;
 import io.onemfive.data.Envelope;
+import io.onemfive.data.util.DLC;
+import io.onemfive.sensors.SensorsService;
+
 import java.util.logging.Logger;
 
 /**
@@ -28,6 +31,7 @@ public class ProxyHandler extends EnvelopeProxyDataHandler {
      */
     @Override
     protected void route(Envelope e) {
+        LOG.info("Changing Sensitivity to Medium to pick up Tor Sensor...");
         // Change flag to Medium so Tor Sensor will pick up
         e.setSensitivity(Envelope.Sensitivity.MEDIUM);
         sensor.send(e);
